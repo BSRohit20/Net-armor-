@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-3 fw-bold mb-4">
+        <i class="fas fa-shield-alt me-3"></i>NET ARMOR
+    </h1>
+    <p class="lead fs-4">Your Comprehensive Digital Security Toolkit</p>
+    <p class="text-muted">Protect, Generate, and Manage your digital security needs</p>
+</div>
+
+<div class="row justify-content-center g-4">
+    <div class="col-md-6">
+        <div class="card h-100 text-center p-4">
+            <div class="card-body">
+                <i class="fas fa-users display-1 text-info mb-3"></i>
+                <h3 class="card-title">Community Post</h3>
+                <p class="card-text">Connect with the security community. Share experiences, ask questions, and learn from others.</p>
+                <a href="{{ url_for('community') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-arrow-right me-2"></i>Enter Community
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100 text-center p-4">
+            <div class="card-body">
+                <i class="fas fa-tools display-1 text-warning mb-3"></i>
+                <h3 class="card-title">Security Toolkit</h3>
+                <p class="card-text">Access powerful security tools including password management, encryption, and IP lookup utilities.</p>
+                <a href="{{ url_for('toolkit') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-arrow-right me-2"></i>Open Toolkit
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <h4 class="mb-3">Features</h4>
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <i class="fas fa-key fa-2x text-primary mb-2"></i>
+                        <p class="small">Password Manager</p>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="fas fa-random fa-2x text-success mb-2"></i>
+                        <p class="small">Password Generator</p>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
+                        <p class="small">Password Strength</p>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="fas fa-search fa-2x text-info mb-2"></i>
+                        <p class="small">IP Lookup</p>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="fas fa-lock fa-2x text-danger mb-2"></i>
+                        <p class="small">Encryption</p>
+                    </div>
+                    <div class="col-md-2">
+                        <i class="fas fa-comments fa-2x text-secondary mb-2"></i>
+                        <p class="small">Community</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

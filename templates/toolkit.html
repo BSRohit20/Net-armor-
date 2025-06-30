@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Toolkit - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4 text-center">
+            <i class="fas fa-tools me-2"></i>Security Toolkit
+        </h2>
+        <p class="text-center text-muted mb-5">Choose from our comprehensive set of security tools</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-key display-3 text-primary mb-3"></i>
+                <h5 class="card-title">Password Manager</h5>
+                <p class="card-text flex-grow-1">Securely store and manage your passwords for different websites and services.</p>
+                <a href="{{ url_for('password_manager') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Open Manager
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-random display-3 text-success mb-3"></i>
+                <h5 class="card-title">Password Generator</h5>
+                <p class="card-text flex-grow-1">Generate strong, secure passwords with customizable options and criteria.</p>
+                <a href="{{ url_for('password_generator') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Generate Password
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-shield-alt display-3 text-warning mb-3"></i>
+                <h5 class="card-title">Password Strength Checker</h5>
+                <p class="card-text flex-grow-1">Analyze and evaluate the strength of your passwords with detailed feedback.</p>
+                <a href="{{ url_for('password_strength') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Check Strength
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-search display-3 text-info mb-3"></i>
+                <h5 class="card-title">IP Lookup</h5>
+                <p class="card-text flex-grow-1">Get detailed information about IP addresses including location and ISP data.</p>
+                <a href="{{ url_for('ip_lookup') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Lookup IP
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-lock display-3 text-danger mb-3"></i>
+                <h5 class="card-title">Encryption/Decryption</h5>
+                <p class="card-text flex-grow-1">Secure your text data with strong encryption and decryption capabilities.</p>
+                <a href="{{ url_for('encryption') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Encrypt/Decrypt
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-arrow-left display-3 text-secondary mb-3"></i>
+                <h5 class="card-title">Back to Home</h5>
+                <p class="card-text flex-grow-1">Return to the main homepage to access other features.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                    <i class="fas fa-home me-2"></i>Go Home
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.toolkit-card {
+    transition: all 0.3s ease;
+}
+
+.toolkit-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(87, 51, 255, 0.2);
+}
+</style>
+{% endblock %}

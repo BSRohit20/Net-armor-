@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Community - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-users me-2"></i>Community Posts
+            <span class="badge bg-secondary ms-2">Beta</span>
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-plus me-2"></i>Create New Post</h5>
+            </div>
+            <div class="card-body">
+                <form id="postForm">
+                    <div class="mb-3">
+                        <label for="nameInput" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="nameInput" placeholder="Enter your name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="postInput" class="form-label">Post Content</label>
+                        <textarea class="form-control" id="postInput" rows="4" placeholder="What's on your mind?" required></textarea>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary" onclick="clearFields()">
+                            <i class="fas fa-eraser me-1"></i>Clear
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Create Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-comments me-2"></i>Recent Posts</h5>
+                <button class="btn btn-sm btn-outline-light" onclick="loadPosts()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="postsContainer">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin"></i> Loading posts...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let posts = [];
+
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+
+function clearFields() {
+    document.getElementById('nameInput').value = '';
+    document.getElementById('postInput').value = '';
+}
+
+function formatDate(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
+
+function displayPosts() {
+    const container = document.getElementById('postsContainer');
+    
+    if (posts.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted">
+                <i class="fas fa-comments"></i>
+                <p class="mt-2">No posts yet. Be the first to share!</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = posts.map(post => `
+        <div class="border-bottom pb-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <h6 class="text-info">${post.name}</h6>
+                <small class="text-muted">${formatDate(post.timestamp)}</small>
+            </div>
+            <p class="mb-0">${post.content}</p>
+        </div>
+    `).join('');
+}
+
+async function loadPosts() {
+    try {
+        const response = await fetch('/api/get_posts');
+        posts = await response.json();
+        displayPosts();
+    } catch (error) {
+        showAlert('Failed to load posts', 'danger');
+    }
+}
+
+document.getElementById('postForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('nameInput').value.trim();
+    const content = document.getElementById('postInput').value.trim();
+    
+    if (!name || !content) {
+        showAlert('Please fill in both name and post content', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/create_post', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, post: content })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert(result.message, 'success');
+            clearFields();
+            loadPosts(); // Reload posts
+        } else {
+            showAlert(result.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Failed to create post', 'danger');
+    }
+});
+
+// Load posts when page loads
+window.addEventListener('load', loadPosts);
+</script>
+{% endblock %}

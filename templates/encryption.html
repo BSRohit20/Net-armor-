@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Encryption/Decryption - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-lock me-2"></i>Encryption/Decryption Tool
+            <a href="{{ url_for('toolkit') }}" class="btn btn-secondary btn-sm ms-3">
+                <i class="fas fa-arrow-left me-1"></i>Back to Toolkit
+            </a>
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-lock me-2"></i>Encrypt Text</h5>
+            </div>
+            <div class="card-body">
+                <form id="encryptForm">
+                    <div class="mb-3">
+                        <label for="encryptText" class="form-label">Text to Encrypt</label>
+                        <textarea class="form-control" id="encryptText" rows="4" placeholder="Enter text to encrypt..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="encryptPassword" class="form-label">Encryption Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="encryptPassword" placeholder="Enter password" required>
+                            <button class="btn btn-outline-light" type="button" onclick="togglePassword('encryptPassword', 'toggleEncryptIcon')">
+                                <i class="fas fa-eye" id="toggleEncryptIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Use a strong password for better security</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-lock me-2"></i>Encrypt Text
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="encryptResult" style="display: none;" class="mt-3">
+                    <label for="encryptedOutput" class="form-label">Encrypted Text</label>
+                    <div class="input-group">
+                        <textarea class="form-control" id="encryptedOutput" rows="3" readonly></textarea>
+                        <button class="btn btn-outline-light" type="button" onclick="copyToClipboard('encryptedOutput', 'Encrypted text')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-unlock me-2"></i>Decrypt Text</h5>
+            </div>
+            <div class="card-body">
+                <form id="decryptForm">
+                    <div class="mb-3">
+                        <label for="decryptText" class="form-label">Encrypted Text</label>
+                        <textarea class="form-control" id="decryptText" rows="4" placeholder="Enter encrypted text..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="decryptPassword" class="form-label">Decryption Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="decryptPassword" placeholder="Enter password" required>
+                            <button class="btn btn-outline-light" type="button" onclick="togglePassword('decryptPassword', 'toggleDecryptIcon')">
+                                <i class="fas fa-eye" id="toggleDecryptIcon"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Use the same password used for encryption</div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-unlock me-2"></i>Decrypt Text
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="decryptResult" style="display: none;" class="mt-3">
+                    <label for="decryptedOutput" class="form-label">Decrypted Text</label>
+                    <div class="input-group">
+                        <textarea class="form-control" id="decryptedOutput" rows="3" readonly></textarea>
+                        <button class="btn btn-outline-light" type="button" onclick="copyToClipboard('decryptedOutput', 'Decrypted text')">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Security Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-shield-alt text-success me-2"></i>Encryption Standard</h6>
+                        <p class="small">AES-256 with PBKDF2 key derivation</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-key text-info me-2"></i>Key Security</h6>
+                        <p class="small">100,000 iterations for enhanced security</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6><i class="fas fa-exclamation-triangle text-warning me-2"></i>Important Note</h6>
+                        <p class="small">Keep your password safe - it cannot be recovered</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+
+function togglePassword(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(iconId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.className = 'fas fa-eye';
+    }
+}
+
+function copyToClipboard(textareaId, type) {
+    const textarea = document.getElementById(textareaId);
+    navigator.clipboard.writeText(textarea.value).then(() => {
+        showAlert(`${type} copied to clipboard!`, 'success');
+    }).catch(() => {
+        showAlert('Failed to copy to clipboard', 'danger');
+    });
+}
+
+function clearForm(formId) {
+    document.getElementById(formId).reset();
+    if (formId === 'encryptForm') {
+        document.getElementById('encryptResult').style.display = 'none';
+    } else {
+        document.getElementById('decryptResult').style.display = 'none';
+    }
+}
+
+document.getElementById('encryptForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const text = document.getElementById('encryptText').value.trim();
+    const password = document.getElementById('encryptPassword').value;
+    
+    if (!text || !password) {
+        showAlert('Please fill in all fields', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/encrypt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text, password: password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('encryptedOutput').value = result.result;
+            document.getElementById('encryptResult').style.display = 'block';
+            showAlert('Text encrypted successfully!', 'success');
+        } else {
+            showAlert(result.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Failed to encrypt text', 'danger');
+    }
+});
+
+document.getElementById('decryptForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const text = document.getElementById('decryptText').value.trim();
+    const password = document.getElementById('decryptPassword').value;
+    
+    if (!text || !password) {
+        showAlert('Please fill in all fields', 'warning');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/decrypt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: text, password: password })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            document.getElementById('decryptedOutput').value = result.result;
+            document.getElementById('decryptResult').style.display = 'block';
+            showAlert('Text decrypted successfully!', 'success');
+        } else {
+            showAlert(result.message, 'danger');
+        }
+    } catch (error) {
+        showAlert('Failed to decrypt text', 'danger');
+    }
+});
+</script>
+{% endblock %}

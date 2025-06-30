@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}IP Lookup - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-search me-2"></i>IP Lookup Tool
+            <a href="{{ url_for('toolkit') }}" class="btn btn-secondary btn-sm ms-3">
+                <i class="fas fa-arrow-left me-1"></i>Back to Toolkit
+            </a>
+        </h2>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-globe me-2"></i>IP Address Information</h5>
+            </div>
+            <div class="card-body">
+                <form id="lookupForm">
+                    <div class="mb-3">
+                        <label for="ipInput" class="form-label">Enter IP Address</label>
+                        <input type="text" class="form-control" id="ipInput" placeholder="e.g., 8.8.8.8 or 1.1.1.1" required>
+                        <div class="form-text">Enter an IPv4 address to get detailed information</div>
+                    </div>
+                    
+                    <div class="text-center mb-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-search me-2"></i>Lookup IP
+                        </button>
+                        <button type="button" class="btn btn-info btn-lg ms-2" onclick="getMyIP()">
+                            <i class="fas fa-map-marker-alt me-2"></i>My IP
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="resultSection" style="display: none;">
+                    <hr>
+                    <div class="row" id="ipResults">
+                        <!-- Results will be populated here -->
+                    </div>
+                </div>
+                
+                <div id="loadingSection" style="display: none;">
+                    <hr>
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin fa-2x text-info"></i>
+                        <p class="mt-2">Looking up IP information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alertContainer"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showAlert(message, type = 'info') {
+    const alertContainer = document.getElementById('alertContainer');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 5000);
+}
+
+function displayIPResults(data) {
+    const resultsContainer = document.getElementById('ipResults');
+    
+    resultsContainer.innerHTML = `
+        <div class="col-md-6">
+            <div class="card bg-dark border-light">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>IP Address:</strong> ${data.ip || 'N/A'}</p>
+                    <p><strong>City:</strong> ${data.city || 'N/A'}</p>
+                    <p><strong>Region:</strong> ${data.region || 'N/A'}</p>
+                    <p><strong>Country:</strong> ${data.country_name || 'N/A'} (${data.country || 'N/A'})</p>
+                    <p><strong>Postal Code:</strong> ${data.postal || 'N/A'}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-dark border-light">
+                <div class="card-header">
+                    <h6><i class="fas fa-network-wired me-2"></i>Network Information</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>ISP:</strong> ${data.org || 'N/A'}</p>
+                    <p><strong>ASN:</strong> ${data.asn || 'N/A'}</p>
+                    <p><strong>Timezone:</strong> ${data.timezone || 'N/A'}</p>
+                    <p><strong>Currency:</strong> ${data.currency || 'N/A'}</p>
+                    <p><strong>Languages:</strong> ${data.languages || 'N/A'}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 mt-3">
+            <div class="card bg-dark border-light">
+                <div class="card-header">
+                    <h6><i class="fas fa-map-marker-alt me-2"></i>Location Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Latitude:</strong> ${data.latitude || 'N/A'}</p>
+                            <p><strong>Longitude:</strong> ${data.longitude || 'N/A'}</p>
+                            <p><strong>Continent:</strong> ${data.continent_code || 'N/A'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Version:</strong> ${data.version || 'N/A'}</p>
+                            <p><strong>Network:</strong> ${data.network || 'N/A'}</p>
+                            <p><strong>UTC Offset:</strong> ${data.utc_offset || 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function isValidIP(ip) {
+    const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    return ipv4Regex.test(ip);
+}
+
+async function getMyIP() {
+    try {
+        document.getElementById('loadingSection').style.display = 'block';
+        document.getElementById('resultSection').style.display = 'none';
+        
+        // First get the user's IP
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        
+        document.getElementById('ipInput').value = ipData.ip;
+        
+        // Then lookup the information
+        lookupIP(ipData.ip);
+    } catch (error) {
+        document.getElementById('loadingSection').style.display = 'none';
+        showAlert('Failed to get your IP address', 'danger');
+    }
+}
+
+async function lookupIP(ip) {
+    try {
+        document.getElementById('loadingSection').style.display = 'block';
+        document.getElementById('resultSection').style.display = 'none';
+        
+        const response = await fetch('/api/lookup_ip', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ ip: ip })
+        });
+        
+        const result = await response.json();
+        
+        document.getElementById('loadingSection').style.display = 'none';
+        
+        if (result.success) {
+            displayIPResults(result.data);
+            document.getElementById('resultSection').style.display = 'block';
+            showAlert('IP lookup completed successfully!', 'success');
+        } else {
+            showAlert(result.message, 'danger');
+        }
+    } catch (error) {
+        document.getElementById('loadingSection').style.display = 'none';
+        showAlert('Failed to lookup IP address', 'danger');
+    }
+}
+
+document.getElementById('lookupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const ip = document.getElementById('ipInput').value.trim();
+    
+    if (!ip) {
+        showAlert('Please enter an IP address', 'warning');
+        return;
+    }
+    
+    if (!isValidIP(ip)) {
+        showAlert('Please enter a valid IPv4 address', 'warning');
+        return;
+    }
+    
+    await lookupIP(ip);
+});
+</script>
+{% endblock %}
