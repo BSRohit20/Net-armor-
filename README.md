@@ -1,10 +1,10 @@
 # 🛡️ NET ARMOR - Digital Security Toolkit
 
-**Live Demo:** 🌐 **[https://web-production-07c5d.up.railway.app/](https://web-production-07c5d.up.railway.app/)**
+**Live Demo:** 🌐 **[https://net-armor.onrender.com/](https://net-armor.onrender.com/)**
 
 A comprehensive web-based digital security toolkit that provides essential cybersecurity tools accessible from any device, anywhere in the world. Originally developed as a PyQt5 desktop application, NET ARMOR has been converted to a modern web application for global accessibility.
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20App-blue?style=for-the-badge&logo=railway)](https://web-production-07c5d.up.railway.app/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20App-blue?style=for-the-badge&logo=render)](https://net-armor.onrender.com/)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-green?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.1.3-purple?style=for-the-badge&logo=bootstrap)](https://getbootstrap.com/)
@@ -12,26 +12,26 @@ A comprehensive web-based digital security toolkit that provides essential cyber
 ## 🚀 **Live Application Features**
 
 ### 🔐 **Core Security Tools**
-- **[Password Manager](https://web-production-07c5d.up.railway.app/password-manager)** - Securely store and manage passwords
-- **[Password Generator](https://web-production-07c5d.up.railway.app/password-generator)** - Generate strong, customizable passwords
-- **[Password Strength Checker](https://web-production-07c5d.up.railway.app/password-strength)** - Analyze password security with detailed feedback
-- **[IP Lookup Tool](https://web-production-07c5d.up.railway.app/ip-lookup)** - Get comprehensive IP address information
-- **[Encryption/Decryption](https://web-production-07c5d.up.railway.app/encryption)** - Secure text encryption using AES-256
+- **[Password Manager](https://net-armor.onrender.com/password-manager)** - Securely store and manage passwords
+- **[Password Generator](https://net-armor.onrender.com/password-generator)** - Generate strong, customizable passwords
+- **[Password Strength Checker](https://net-armor.onrender.com/password-strength)** - Analyze password security with detailed feedback
+- **[IP Lookup Tool](https://net-armor.onrender.com/ip-lookup)** - Get comprehensive IP address information
+- **[Encryption/Decryption](https://net-armor.onrender.com/encryption)** - Secure text encryption using AES-256
 
 ### 🛡️ **Advanced Security Analysis**
-- **[Hash & Checksum Analyzer](https://web-production-07c5d.up.railway.app/hash-analyzer)** - Generate and verify MD5, SHA-1, SHA-256, SHA-512 hashes
-- **[Data Breach Checker](https://web-production-07c5d.up.railway.app/breach-checker)** - Check email/password breaches using HaveIBeenPwned API
-- **[URL Security Scanner](https://web-production-07c5d.up.railway.app/url-scanner)** - Analyze websites for security headers and vulnerabilities
+- **[Hash & Checksum Analyzer](https://net-armor.onrender.com/hash-analyzer)** - Generate and verify MD5, SHA-1, SHA-256, SHA-512 hashes
+- **[Data Breach Checker](https://net-armor.onrender.com/breach-checker)** - Check email/password breaches using HaveIBeenPwned API
+- **[URL Security Scanner](https://net-armor.onrender.com/url-scanner)** - Analyze websites for security headers and vulnerabilities
 
 ### 👥 **Authentication & User Management**
-- **[User Registration](https://web-production-07c5d.up.railway.app/register)** - Create new accounts with email/password
-- **[User Login](https://web-production-07c5d.up.railway.app/login)** - Secure authentication system
-- **[Google OAuth](https://web-production-07c5d.up.railway.app/login)** - Sign in/up with Google account
-- **[User Dashboard](https://web-production-07c5d.up.railway.app/dashboard)** - Personalized user experience
+- **[User Registration](https://net-armor.onrender.com/register)** - Create new accounts with email/password
+- **[User Login](https://net-armor.onrender.com/login)** - Secure authentication system
+- **[Google OAuth](https://net-armor.onrender.com/login)** - Sign in/up with Google account
+- **[User Dashboard](https://net-armor.onrender.com/dashboard)** - Personalized user experience
 - **Session Management** - Secure login sessions with logout functionality
 
 ### 👥 **Community Features**
-- **[Community Posts](https://web-production-07c5d.up.railway.app/community)** - Share experiences and learn from security community
+- **[Community Posts](https://net-armor.onrender.com/community)** - Share experiences and learn from security community
 
 ## 📱 **Cross-Platform Access**
 
@@ -43,25 +43,45 @@ A comprehensive web-based digital security toolkit that provides essential cyber
 
 ## 🎨 **Tech Stack**
 
-### **Backend**
+### **Backend Technologies**
 - **Python 3.9+** - Core programming language
-- **Flask 2.3.3** - Web framework
-- **Gunicorn** - Production WSGI server
-- **Cryptography** - AES-256 encryption
-- **Requests** - HTTP library for API calls
+- **Flask 2.3.3** - Modern web framework
+- **Gunicorn** - Production WSGI server for deployment
+- **Cryptography** - AES-256 encryption library
+- **Requests** - HTTP library for API integrations
+- **Google OAuth2** - Authentication integration
+- **JSON** - Data storage and API responses
 
-### **Frontend**
-- **HTML5** - Semantic markup
-- **CSS3** - Modern styling with gradients and glassmorphism
+### **Frontend Technologies**
+- **HTML5** - Semantic markup with modern standards
+- **CSS3** - Advanced styling with gradients and glassmorphism effects
 - **Bootstrap 5.1.3** - Responsive UI framework
-- **Font Awesome 6.0** - Icon library
-- **Vanilla JavaScript (ES6+)** - Interactive functionality
-- **Fetch API** - Asynchronous requests
+- **Font Awesome 6.0** - Professional icon library
+- **Vanilla JavaScript (ES6+)** - Interactive functionality and AJAX
+- **Fetch API** - Modern asynchronous HTTP requests
+- **Progressive Web App** - Mobile-responsive design
 
-### **Deployment**
-- **Railway.app** - Cloud hosting platform
-- **Git** - Version control
-- **GitHub** - Repository hosting
+### **Security & Encryption**
+- **AES-256 Encryption** - Industry-standard symmetric encryption
+- **PBKDF2** - Password-based key derivation with 100,000 iterations
+- **SHA-256 Hashing** - Secure password storage
+- **HTTPS/TLS** - Encrypted data transmission
+- **CSRF Protection** - Cross-site request forgery prevention
+- **Input Validation** - Server-side data sanitization
+
+### **APIs & Integrations**
+- **HaveIBeenPwned API** - Data breach checking
+- **Google OAuth 2.0** - Secure authentication
+- **IP-API** - IP address geolocation data
+- **DNS Lookup** - Domain validation services
+
+### **Deployment & Infrastructure**
+- **Render.com** - Cloud hosting platform
+- **Docker** - Containerization support
+- **Git** - Version control system
+- **GitHub** - Repository hosting and CI/CD
+- **Environment Variables** - Secure configuration management
+- **In-Memory Storage** - Production data handling
 
 ## 🔒 **Security Features**
 
@@ -74,7 +94,7 @@ A comprehensive web-based digital security toolkit that provides essential cyber
 ## 🚀 **Quick Start**
 
 ### **Use Online (Recommended)**
-Simply visit: **[https://web-production-07c5d.up.railway.app/](https://web-production-07c5d.up.railway.app/)**
+Simply visit: **[https://net-armor.onrender.com/](https://net-armor.onrender.com/)**
 
 No installation required! All tools work directly in your browser.
 
@@ -96,27 +116,27 @@ Access at: `http://localhost:5000`
 ## 📖 **User Guide**
 
 ### **🔑 Password Manager**
-1. Navigate to [Password Manager](https://web-production-07c5d.up.railway.app/password-manager)
+1. Navigate to [Password Manager](https://net-armor.onrender.com/password-manager)
 2. Add new passwords with website, username, and password
 3. View saved passwords (click copy to clipboard)
 4. All data is stored securely
 
 ### **🎲 Password Generator**
-1. Go to [Password Generator](https://web-production-07c5d.up.railway.app/password-generator)
+1. Go to [Password Generator](https://net-armor.onrender.com/password-generator)
 2. Set desired length (4-128 characters)
 3. Choose character types (uppercase, lowercase, digits, special)
 4. Generate and copy strong passwords
 5. Save directly to Password Manager
 
 ### **⚡ Password Strength Checker**
-1. Visit [Password Strength Checker](https://web-production-07c5d.up.railway.app/password-strength)
+1. Visit [Password Strength Checker](https://net-armor.onrender.com/password-strength)
 2. Enter any password to analyze
 3. Get detailed strength assessment
 4. Receive improvement recommendations
 5. Real-time feedback on security requirements
 
 ### **🌐 IP Lookup Tool**
-1. Access [IP Lookup](https://web-production-07c5d.up.railway.app/ip-lookup)
+1. Access [IP Lookup](https://net-armor.onrender.com/ip-lookup)
 2. Enter any IPv4 address or click "My IP"
 3. Get comprehensive information:
    - Geographic location
@@ -125,14 +145,14 @@ Access at: `http://localhost:5000`
    - Coordinates and more
 
 ### **🔐 Encryption/Decryption**
-1. Open [Encryption Tool](https://web-production-07c5d.up.railway.app/encryption)
+1. Open [Encryption Tool](https://net-armor.onrender.com/encryption)
 2. **Encrypt**: Enter text and password, get encrypted output
 3. **Decrypt**: Enter encrypted text and same password
 4. Uses military-grade AES-256 encryption
 5. Copy results to clipboard
 
 ### **💬 Community Posts**
-1. Visit [Community](https://web-production-07c5d.up.railway.app/community)
+1. Visit [Community](https://net-armor.onrender.com/community)
 2. Share security experiences and tips
 3. Ask questions and learn from others
 4. Real-time post updates
@@ -143,7 +163,8 @@ Access at: `http://localhost:5000`
 NET ARMOR/
 ├── 📄 app.py                    # Main Flask application
 ├── 📄 requirements.txt          # Python dependencies
-├── 📄 Procfile                 # Railway deployment config
+├── 📄 Procfile                 # Railway/Heroku deployment config
+├── 📄 render.yaml              # Render deployment config
 ├── 📄 render.yaml              # Render.com deployment config
 ├── 📄 Dockerfile               # Docker container setup
 ├── � docker-compose.yml       # Docker Compose setup
@@ -201,6 +222,8 @@ NET ARMOR/
 
 Deploy NET ARMOR instantly on your preferred platform:
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
 [![Deploy to Railway](https://railway.app/button.svg)](https://railway.app/new/template/railway)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
@@ -212,8 +235,11 @@ Deploy NET ARMOR instantly on your preferred platform:
 
 ## 🚀 **Deployment Options**
 
-### **Current Deployment: Railway.app**
-- **Live URL**: https://web-production-07c5d.up.railway.app/
+### **Current Deployment: Render.com**
+- **Live URL**: https://net-armor.onrender.com/
+- **Status**: ✅ Active and fully functional
+- **Performance**: Fast global CDN with auto-scaling
+- **Security**: HTTPS enabled, environment variables secured
 - **Auto-scaling** based on traffic
 - **Global CDN** for fast worldwide access
 - **99.9% Uptime** guarantee
@@ -269,13 +295,14 @@ Deploy NET ARMOR instantly on your preferred platform:
 
 | Platform | Free Tier | Auto Deploy | SSL/HTTPS | Custom Domain | Database | Best For |
 |----------|-----------|-------------|-----------|---------------|-----------|----------|
-| **Railway** | $5 credit | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Current deployment |
+| **Render** | Free tier | ✅ | ✅ 750hrs/month | ✅ Free | 🔄 Auto-deploy | **Current** |
+| **Railway** | $5 credit | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Alternative |
 | **Render** | 750h/month | ✅ | ✅ Free | ✅ Free | 🔄 Add-ons | **Recommended alternative** |
 | **Heroku** | ❌ Discontinued | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Legacy apps |
 | **Vercel** | ✅ Limited | ✅ | ✅ Free | ✅ Free | ❌ External | Static/Jamstack |
 | **DigitalOcean** | ❌ $4/month | 🔄 Manual | 🔄 Setup | ✅ Full control | ✅ Full control | VPS control |
 
-**💡 Recommendation**: Use **Render.com** for the best free alternative to Railway with similar features and better free tier limits.
+**💡 Recommendation**: **Render.com** is now our primary deployment platform, offering excellent free tier with 750 hours/month, automatic deployments from GitHub, and built-in HTTPS.
 
 ## 🛠️ **Development Setup**
 
@@ -411,7 +438,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Bootstrap Team** for the excellent UI framework
 - **Font Awesome** for comprehensive icon library
 - **Flask Community** for the powerful web framework
-- **Railway.app** for reliable hosting platform
+- **Render.com** for reliable and free hosting platform
 - **Security Community** for best practices and feedback
 
 ## 🚀 **Roadmap**
@@ -442,4 +469,4 @@ If you find NET ARMOR useful, please ⭐ **star this repository** to show your s
 
 ---
 
-*Made with ❤️ by BSRohit20 | Deployed with 🚀 Railway.app*
+*Made with ❤️ by BSRohit20 | Deployed with 🚀 Render.com*
