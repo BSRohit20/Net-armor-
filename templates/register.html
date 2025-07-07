@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Register - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user me-2"></i>Username
+                            </label>
+                            <input type="text" class="form-control" id="username" placeholder="Choose a username" required>
+                            <div class="form-text">3-20 characters, letters, numbers, and underscores only</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email Address
+                            </label>
+                            <div class="input-group">
+                                <input type="email" class="form-control" id="email" placeholder="your.email@example.com" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="validateEmailReal()">
+                                    <i class="fas fa-check" id="emailValidateIcon"></i>
+                                </button>
+                            </div>
+                            <div id="emailValidation" class="form-text"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Password
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password" placeholder="Create a strong password" required>
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                                    <i class="fas fa-eye" id="passwordToggle"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">Minimum 6 characters</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Confirm Password
+                            </label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" required>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </div>
+                    </form>
+                    
+                    {% if google_oauth_enabled %}
+                    <div class="text-center my-3">
+                        <span class="text-muted">or</span>
+                    </div>
+                    
+                    <!-- Google Sign Up -->
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{{ url_for('google_login') }}" class="btn btn-danger">
+                            <i class="fab fa-google me-2"></i>Sign up with Google
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-2">Already have an account?</p>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-light">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                    </div>
+                    
+                    <!-- Loading Indicator -->
+                    <div id="loading" class="text-center mt-3" style="display: none;">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Alert Messages -->
+                    <div id="alertMessage" class="alert alert-dismissible fade show mt-3" role="alert" style="display: none;">
+                        <span id="alertText"></span>
+                        <button type="button" class="btn-close" onclick="hideAlert()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validation
+    if (!username || !email || !password || !confirmPassword) {
+        showAlert('Please fill in all fields.', 'warning');
+        return;
+    }
+    
+    if (username.length < 3 || username.length > 20) {
+        showAlert('Username must be between 3 and 20 characters.', 'warning');
+        return;
+    }
+    
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+        showAlert('Username can only contain letters, numbers, and underscores.', 'warning');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match.', 'warning');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showAlert('Password must be at least 6 characters long.', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/api/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 2000);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Registration failed: ' + error.message, 'danger');
+    });
+});
+
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const toggleIcon = document.getElementById('passwordToggle');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.className = 'fas fa-eye';
+    }
+}
+
+function validateEmailReal() {
+    const email = document.getElementById('email').value.trim();
+    const emailValidation = document.getElementById('emailValidation');
+    const emailValidateIcon = document.getElementById('emailValidateIcon');
+    
+    if (!email) {
+        emailValidation.innerHTML = '<span class="text-warning">Please enter an email address</span>';
+        return;
+    }
+    
+    // Show loading state
+    emailValidateIcon.className = 'fas fa-spinner fa-spin';
+    emailValidation.innerHTML = '<span class="text-info">Validating email...</span>';
+    
+    fetch('/api/validate_email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.valid) {
+            emailValidateIcon.className = 'fas fa-check';
+            if (data.warning) {
+                emailValidation.innerHTML = `<span class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>${data.warning}</span>`;
+            } else if (!data.domain_exists) {
+                emailValidation.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Email format is valid but domain may not exist</span>';
+            } else {
+                emailValidation.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>Email address is valid</span>';
+            }
+        } else {
+            emailValidateIcon.className = 'fas fa-times';
+            emailValidation.innerHTML = `<span class="text-danger"><i class="fas fa-times me-1"></i>${data.message}</span>`;
+        }
+    })
+    .catch(error => {
+        emailValidateIcon.className = 'fas fa-exclamation-triangle';
+        emailValidation.innerHTML = '<span class="text-danger">Email validation failed</span>';
+    });
+}
+
+// Auto-validate email when user stops typing
+let emailTimeout;
+document.getElementById('email').addEventListener('input', function() {
+    clearTimeout(emailTimeout);
+    emailTimeout = setTimeout(() => {
+        if (this.value.trim()) {
+            validateEmailReal();
+        }
+    }, 1000); // Wait 1 second after user stops typing
+});
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.getElementById('alertMessage');
+    const alertText = document.getElementById('alertText');
+    
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertText.textContent = message;
+    alertDiv.style.display = 'block';
+    
+    if (type === 'success') {
+        setTimeout(hideAlert, 5000);
+    }
+}
+
+function hideAlert() {
+    document.getElementById('alertMessage').style.display = 'none';
+}
+</script>
+{% endblock %}

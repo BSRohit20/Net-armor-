@@ -7,6 +7,23 @@
     </h1>
     <p class="lead fs-4">Your Comprehensive Digital Security Toolkit</p>
     <p class="text-muted">Protect, Generate, and Manage your digital security needs</p>
+    
+    {% if not session.user_id %}
+    <div class="mt-4">
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-sign-in-alt me-2"></i>Login
+        </a>
+        <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Register
+        </a>
+    </div>
+    {% else %}
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-3">
+            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+        </a>
+    </div>
+    {% endif %}
 </div>
 
 <div class="row justify-content-center g-4">
@@ -16,9 +33,15 @@
                 <i class="fas fa-users display-1 text-info mb-3"></i>
                 <h3 class="card-title">Community Post</h3>
                 <p class="card-text">Connect with the security community. Share experiences, ask questions, and learn from others.</p>
+                {% if session.user_id %}
                 <a href="{{ url_for('community') }}" class="btn btn-primary btn-lg">
                     <i class="fas fa-arrow-right me-2"></i>Enter Community
                 </a>
+                {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Access
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>

@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import secrets
 import string
 import re
@@ -13,13 +13,40 @@ import json
 from datetime import datetime
 import hashlib
 import urllib.parse
+from functools import wraps
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
+from google_auth_oauthlib.flow import Flow
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-this-in-production')
 
-# File to store community posts
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+
+# Check if Google OAuth is properly configured
+GOOGLE_OAUTH_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and 
+                           GOOGLE_CLIENT_ID != 'your-google-client-id-here' and
+                           GOOGLE_CLIENT_SECRET != 'your-google-client-secret-here')
+
+# OAuth 2.0 client configuration for Google (only if enabled)
+client_config = None
+if GOOGLE_OAUTH_ENABLED:
+    client_config = {
+        "web": {
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": ["http://localhost:5000/auth/google/callback"]
+        }
+    }
+
+# File to store community posts, passwords, and users
 POSTS_FILE = 'community_posts.json'
 PASSWORDS_FILE = 'passwords.json'
+USERS_FILE = 'users.json'
 
 def load_posts():
     """Load community posts from file"""
@@ -45,10 +72,287 @@ def save_passwords(passwords):
     with open(PASSWORDS_FILE, 'w') as f:
         json.dump(passwords, f, indent=2)
 
+def load_users():
+    """Load users from file"""
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, 'r') as f:
+            return json.load(f)
+    return []
+
+def save_users(users):
+    """Save users to file"""
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=2)
+
+def hash_password(password):
+    """Hash password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password, hashed_password):
+    """Verify password against hash"""
+    return hash_password(password) == hashed_password
+
+def login_required(f):
+    """Decorator to require login for protected routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
 def index():
     """Main homepage"""
     return render_template('index.html')
+
+@app.route('/login')
+def login():
+    """Login page"""
+    return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+
+@app.route('/register')
+def register():
+    """Registration page"""
+    return render_template('register.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
+
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    """API endpoint for user registration"""
+    data = request.json
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+    email = data.get('email', '').strip()
+    
+    if not username or not password or not email:
+        return jsonify({'success': False, 'message': 'All fields are required'})
+    
+    # Validate email format (enhanced)
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return jsonify({'success': False, 'message': 'Please enter a valid email address'})
+    
+    # Additional email validation checks
+    if len(email) > 254:  # Maximum email length according to RFC
+        return jsonify({'success': False, 'message': 'Email address is too long'})
+    
+    # Check for common invalid patterns
+    if '..' in email or email.startswith('.') or email.endswith('.'):
+        return jsonify({'success': False, 'message': 'Invalid email format'})
+    
+    # Validate email domain (optional DNS check)
+    try:
+        domain = email.split('@')[1]
+        # Check if domain has valid format
+        if not re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', domain):
+            return jsonify({'success': False, 'message': 'Invalid email domain'})
+        
+        # Optional: Check if domain exists (DNS lookup)
+        # Uncomment the following lines if you want to verify domain exists
+        # import socket
+        # try:
+        #     socket.gethostbyname(domain)
+        # except socket.gaierror:
+        #     return jsonify({'success': False, 'message': 'Email domain does not exist'})
+        
+    except IndexError:
+        return jsonify({'success': False, 'message': 'Invalid email format'})
+    
+    # Check password strength
+    if len(password) < 6:
+        return jsonify({'success': False, 'message': 'Password must be at least 6 characters long'})
+    
+    users = load_users()
+    
+    # Check if username or email already exists
+    for user in users:
+        if user['username'].lower() == username.lower():
+            return jsonify({'success': False, 'message': 'Username already exists'})
+        if user['email'].lower() == email.lower():
+            return jsonify({'success': False, 'message': 'Email already exists'})
+    
+    # Create new user
+    new_user = {
+        'id': len(users) + 1,
+        'username': username,
+        'email': email,
+        'password': hash_password(password),
+        'created_at': datetime.now().isoformat()
+    }
+    
+    users.append(new_user)
+    save_users(users)
+    
+    return jsonify({'success': True, 'message': 'Registration successful! Please login.'})
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    """API endpoint for user login"""
+    data = request.json
+    username = data.get('username', '').strip()
+    password = data.get('password', '').strip()
+    
+    if not username or not password:
+        return jsonify({'success': False, 'message': 'Username and password are required'})
+    
+    users = load_users()
+    
+    # Find user by username or email
+    user = None
+    for u in users:
+        if u['username'].lower() == username.lower() or u['email'].lower() == username.lower():
+            user = u
+            break
+    
+    if not user:
+        return jsonify({'success': False, 'message': 'Invalid username/email or password'})
+    
+    if not verify_password(password, user['password']):
+        return jsonify({'success': False, 'message': 'Invalid username/email or password'})
+    
+    # Set session
+    session['user_id'] = user['id']
+    session['username'] = user['username']
+    session['email'] = user['email']
+    
+    return jsonify({'success': True, 'message': 'Login successful!', 'redirect': url_for('dashboard')})
+
+@app.route('/logout')
+def logout():
+    """Logout user"""
+    session.clear()
+    flash('You have been logged out successfully.', 'info')
+    return redirect(url_for('login'))
+
+@app.route('/auth/google')
+def google_login():
+    """Initiate Google OAuth login"""
+    if not GOOGLE_OAUTH_ENABLED:
+        flash('Google OAuth is not configured. Please use regular login or contact administrator.', 'warning')
+        return redirect(url_for('login'))
+    
+    try:
+        # Create flow instance to manage the OAuth 2.0 Authorization Grant Flow steps.
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=['openid', 'email', 'profile']
+        )
+        flow.redirect_uri = url_for('google_callback', _external=True)
+        
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true'
+        )
+        
+        # Store the state so the callback can verify the auth server response.
+        session['state'] = state
+        
+        return redirect(authorization_url)
+    except Exception as e:
+        flash(f'Google authentication failed: {str(e)}', 'danger')
+        return redirect(url_for('login'))
+
+@app.route('/auth/google/callback')
+def google_callback():
+    """Handle Google OAuth callback"""
+    if not GOOGLE_OAUTH_ENABLED:
+        flash('Google OAuth is not configured.', 'danger')
+        return redirect(url_for('login'))
+    
+    try:
+        # Verify the state parameter
+        if 'state' not in session or request.args.get('state') != session['state']:
+            flash('Invalid state parameter. Please try again.', 'danger')
+            return redirect(url_for('login'))
+        
+        # Create flow instance
+        flow = Flow.from_client_config(
+            client_config,
+            scopes=['openid', 'email', 'profile'],
+            state=session['state']
+        )
+        flow.redirect_uri = url_for('google_callback', _external=True)
+        
+        # Use the authorization server's response to fetch the OAuth 2.0 tokens.
+        authorization_response = request.url
+        flow.fetch_token(authorization_response=authorization_response)
+        
+        # Get user info from Google
+        credentials = flow.credentials
+        request_session = google_requests.Request()
+        
+        # Verify the token and get user info
+        id_info = id_token.verify_oauth2_token(
+            credentials.id_token, request_session, GOOGLE_CLIENT_ID
+        )
+        
+        # Extract user information
+        google_id = id_info.get('sub')
+        email = id_info.get('email')
+        name = id_info.get('name')
+        picture = id_info.get('picture')
+        
+        if not email:
+            flash('Unable to get email from Google account.', 'danger')
+            return redirect(url_for('login'))
+        
+        # Load existing users
+        users = load_users()
+        
+        # Check if user exists (by email or google_id)
+        existing_user = None
+        for user in users:
+            if user.get('email') == email or user.get('google_id') == google_id:
+                existing_user = user
+                break
+        
+        if existing_user:
+            # Update existing user with Google info
+            existing_user['google_id'] = google_id
+            existing_user['picture'] = picture
+            if not existing_user.get('email'):
+                existing_user['email'] = email
+            if not existing_user.get('full_name'):
+                existing_user['full_name'] = name
+        else:
+            # Create new user from Google account
+            new_user = {
+                'id': len(users) + 1,
+                'username': email.split('@')[0],  # Use part before @ as username
+                'email': email,
+                'full_name': name,
+                'google_id': google_id,
+                'picture': picture,
+                'password': '',  # No password needed for Google users
+                'created_at': datetime.now().isoformat(),
+                'login_method': 'google'
+            }
+            users.append(new_user)
+            existing_user = new_user
+        
+        # Save updated users
+        save_users(users)
+        
+        # Create session
+        session['user_id'] = existing_user['id']
+        session['username'] = existing_user['username']
+        session['email'] = existing_user['email']
+        session['full_name'] = existing_user.get('full_name', '')
+        session['picture'] = existing_user.get('picture', '')
+        session['login_method'] = 'google'
+        
+        flash(f'Welcome, {existing_user.get("full_name", existing_user["username"])}!', 'success')
+        return redirect(url_for('dashboard'))
+        
+    except Exception as e:
+        flash(f'Google authentication failed: {str(e)}', 'danger')
+        return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """User dashboard (protected route)"""
+    return render_template('dashboard.html', username=session.get('username'))
 
 @app.route('/community')
 def community():
@@ -564,6 +868,71 @@ def scan_url():
             'success': False,
             'message': f'Unable to scan URL: {str(e)}'
         })
+
+@app.route('/api/validate_email', methods=['POST'])
+def validate_email():
+    """API endpoint to validate email address"""
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    
+    if not email:
+        return jsonify({'success': False, 'message': 'Please enter an email address'})
+    
+    # Enhanced email format validation
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return jsonify({'success': False, 'message': 'Invalid email format'})
+    
+    # Additional validation checks
+    if len(email) > 254:
+        return jsonify({'success': False, 'message': 'Email address is too long'})
+    
+    if '..' in email or email.startswith('.') or email.endswith('.'):
+        return jsonify({'success': False, 'message': 'Invalid email format'})
+    
+    # Domain validation
+    try:
+        domain = email.split('@')[1]
+        if not re.match(r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', domain):
+            return jsonify({'success': False, 'message': 'Invalid email domain'})
+        
+        # Check for common disposable email domains
+        disposable_domains = [
+            '10minutemail.com', 'tempmail.org', 'guerrillamail.com', 
+            'mailinator.com', 'throwaway.email', 'temp-mail.org',
+            'getnada.com', 'maildrop.cc', 'yopmail.com'
+        ]
+        
+        if domain in disposable_domains:
+            return jsonify({
+                'success': True, 
+                'valid': True,
+                'warning': 'This appears to be a temporary/disposable email address'
+            })
+        
+        # Check if email already exists in our system
+        users = load_users()
+        for user in users:
+            if user.get('email', '').lower() == email:
+                return jsonify({'success': False, 'message': 'Email address is already registered'})
+        
+        # DNS lookup to verify domain exists (optional)
+        import socket
+        try:
+            socket.gethostbyname(domain)
+            domain_exists = True
+        except socket.gaierror:
+            domain_exists = False
+        
+        return jsonify({
+            'success': True, 
+            'valid': True,
+            'domain_exists': domain_exists,
+            'message': 'Email address is valid' if domain_exists else 'Email format is valid but domain may not exist'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'Email validation failed'})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

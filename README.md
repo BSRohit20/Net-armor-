@@ -23,6 +23,13 @@ A comprehensive web-based digital security toolkit that provides essential cyber
 - **[Data Breach Checker](https://web-production-07c5d.up.railway.app/breach-checker)** - Check email/password breaches using HaveIBeenPwned API
 - **[URL Security Scanner](https://web-production-07c5d.up.railway.app/url-scanner)** - Analyze websites for security headers and vulnerabilities
 
+### 👥 **Authentication & User Management**
+- **[User Registration](https://web-production-07c5d.up.railway.app/register)** - Create new accounts with email/password
+- **[User Login](https://web-production-07c5d.up.railway.app/login)** - Secure authentication system
+- **[Google OAuth](https://web-production-07c5d.up.railway.app/login)** - Sign in/up with Google account
+- **[User Dashboard](https://web-production-07c5d.up.railway.app/dashboard)** - Personalized user experience
+- **Session Management** - Secure login sessions with logout functionality
+
 ### 👥 **Community Features**
 - **[Community Posts](https://web-production-07c5d.up.railway.app/community)** - Share experiences and learn from security community
 
