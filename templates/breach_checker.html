@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Data Breach Checker - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-danger text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Data Breach Checker
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Check if your email or password has been compromised in known data breaches using the HaveIBeenPwned database.
+                    </p>
+
+                    <!-- Email Breach Check -->
+                    <div class="mb-4">
+                        <h4><i class="fas fa-envelope me-2"></i>Email Breach Check</h4>
+                        <div class="form-group mb-3">
+                            <label for="emailInput" class="form-label">Enter your email address:</label>
+                            <input type="email" id="emailInput" class="form-control" placeholder="your.email@example.com">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Your email is not stored or logged. This check uses the HaveIBeenPwned API.
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-danger" onclick="checkEmailBreach()">
+                            <i class="fas fa-search me-2"></i>Check Email Breaches
+                        </button>
+                    </div>
+
+                    <!-- Email Results -->
+                    <div id="emailResults" class="mb-4" style="display: none;">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Email Breach Results</h5>
+                        <div class="alert" id="emailAlert">
+                            <div id="emailContent"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Password Breach Check -->
+                    <div class="mb-4">
+                        <h4><i class="fas fa-key me-2"></i>Password Breach Check</h4>
+                        <div class="form-group mb-3">
+                            <label for="passwordInput" class="form-label">Enter your password:</label>
+                            <div class="input-group">
+                                <input type="password" id="passwordInput" class="form-control" placeholder="Enter password to check...">
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePasswordVisibility()">
+                                    <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Your password is hashed locally before checking. Only the first 5 characters of the hash are sent.
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-warning" onclick="checkPasswordBreach()">
+                            <i class="fas fa-search me-2"></i>Check Password Breaches
+                        </button>
+                    </div>
+
+                    <!-- Password Results -->
+                    <div id="passwordResults" class="mb-4" style="display: none;">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Password Breach Results</h5>
+                        <div class="alert" id="passwordAlert">
+                            <div id="passwordContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Checking breach databases...</p>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertMessage" class="alert alert-dismissible fade show" role="alert" style="display: none;">
+                        <span id="alertText"></span>
+                        <button type="button" class="btn-close" onclick="hideAlert()"></button>
+                    </div>
+
+                    <!-- Security Tips -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-lightbulb me-2"></i>Security Tips</h5>
+                        <div class="alert alert-info">
+                            <ul class="mb-0">
+                                <li>If your email is found in breaches, change passwords on those services immediately</li>
+                                <li>Use unique passwords for each account</li>
+                                <li>Enable two-factor authentication wherever possible</li>
+                                <li>Consider using a password manager</li>
+                                <li>Monitor your accounts regularly for suspicious activity</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function checkEmailBreach() {
+    const email = document.getElementById('emailInput').value.trim();
+    
+    if (!email) {
+        showAlert('Please enter an email address.', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/api/check_email_breach', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            if (data.breached) {
+                document.getElementById('emailAlert').className = 'alert alert-danger';
+                document.getElementById('emailContent').innerHTML = `
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Email Found in ${data.breach_count} Breach(es)</h6>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p><strong>Breaches Found:</strong> ${data.breach_count}</p>
+                    <div class="mt-3">
+                        <h6>Breached Services:</h6>
+                        <ul>
+                            ${data.breaches.map(breach => `<li><strong>${breach.Name}</strong> - ${breach.BreachDate}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="mt-3">
+                        <strong>Recommendation:</strong> Change passwords for these services immediately and enable 2FA.
+                    </div>
+                `;
+            } else {
+                document.getElementById('emailAlert').className = 'alert alert-success';
+                document.getElementById('emailContent').innerHTML = `
+                    <h6><i class="fas fa-check-circle me-2"></i>No Breaches Found</h6>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p>Good news! This email address was not found in any known data breaches.</p>
+                `;
+            }
+            
+            document.getElementById('emailResults').style.display = 'block';
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error checking email breaches: ' + error.message, 'danger');
+    });
+}
+
+function checkPasswordBreach() {
+    const password = document.getElementById('passwordInput').value;
+    
+    if (!password) {
+        showAlert('Please enter a password.', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/api/check_password_breach', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: password })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            if (data.breached) {
+                document.getElementById('passwordAlert').className = 'alert alert-danger';
+                document.getElementById('passwordContent').innerHTML = `
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Password Found in Breaches</h6>
+                    <p><strong>Breach Count:</strong> ${data.breach_count.toLocaleString()} times</p>
+                    <div class="mt-3">
+                        <strong>⚠️ Critical Security Risk:</strong> This password has been compromised in data breaches.
+                        <br><strong>Action Required:</strong> Change this password immediately and don't use it anywhere.
+                    </div>
+                `;
+            } else {
+                document.getElementById('passwordAlert').className = 'alert alert-success';
+                document.getElementById('passwordContent').innerHTML = `
+                    <h6><i class="fas fa-check-circle me-2"></i>Password Not Found in Breaches</h6>
+                    <p>Good news! This password was not found in any known data breaches.</p>
+                    <p><small>Note: This doesn't guarantee the password is secure. Use our password strength checker for a complete analysis.</small></p>
+                `;
+            }
+            
+            document.getElementById('passwordResults').style.display = 'block';
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error checking password breaches: ' + error.message, 'danger');
+    });
+}
+
+function togglePasswordVisibility() {
+    const passwordInput = document.getElementById('passwordInput');
+    const toggleIcon = document.getElementById('passwordToggleIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.className = 'fas fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.className = 'fas fa-eye';
+    }
+}
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.getElementById('alertMessage');
+    const alertText = document.getElementById('alertText');
+    
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertText.textContent = message;
+    alertDiv.style.display = 'block';
+    
+    setTimeout(hideAlert, 5000);
+}
+
+function hideAlert() {
+    document.getElementById('alertMessage').style.display = 'none';
+}
+</script>
+{% endblock %}

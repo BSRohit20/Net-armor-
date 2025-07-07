@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}URL Security Scanner - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-warning text-dark">
+                    <h2 class="mb-0">
+                        <i class="fas fa-link me-2"></i>URL Security Scanner
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Analyze URLs for security headers, HTTPS configuration, and basic security indicators.
+                    </p>
+
+                    <!-- URL Input -->
+                    <div class="mb-4">
+                        <h4><i class="fas fa-search me-2"></i>Scan URL</h4>
+                        <div class="form-group mb-3">
+                            <label for="urlInput" class="form-label">Enter URL to scan:</label>
+                            <input type="url" id="urlInput" class="form-control" placeholder="https://example.com">
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Enter a complete URL including http:// or https://
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-warning" onclick="scanUrl()">
+                            <i class="fas fa-search me-2"></i>Scan URL
+                        </button>
+                    </div>
+
+                    <!-- Scan Results -->
+                    <div id="scanResults" class="mb-4" style="display: none;">
+                        <h5><i class="fas fa-chart-bar me-2"></i>Security Analysis Results</h5>
+                        
+                        <!-- Security Score -->
+                        <div class="mb-3">
+                            <h6>Security Score</h6>
+                            <div class="progress mb-2">
+                                <div id="securityProgress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div id="securityScore" class="fw-bold"></div>
+                        </div>
+
+                        <!-- URL Info -->
+                        <div class="mb-3">
+                            <h6>URL Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Final URL:</strong> <span id="finalUrl"></span></p>
+                                    <p><strong>Status Code:</strong> <span id="statusCode"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>HTTPS:</strong> <span id="httpsStatus"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Headers -->
+                        <div class="mb-3">
+                            <h6>Security Headers Analysis</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Header</th>
+                                            <th>Status</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="headersTable">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Recommendations -->
+                        <div id="recommendations" class="mb-3">
+                            <h6>Security Recommendations</h6>
+                            <div class="alert alert-info">
+                                <ul id="recommendationsList" class="mb-0"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Scanning URL...</p>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertMessage" class="alert alert-dismissible fade show" role="alert" style="display: none;">
+                        <span id="alertText"></span>
+                        <button type="button" class="btn-close" onclick="hideAlert()"></button>
+                    </div>
+
+                    <!-- Security Headers Info -->
+                    <div class="mt-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Security Headers Explained</h5>
+                        <div class="accordion" id="securityAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingCSP">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCSP">
+                                        Content Security Policy (CSP)
+                                    </button>
+                                </h2>
+                                <div id="collapseCSP" class="accordion-collapse collapse" data-bs-parent="#securityAccordion">
+                                    <div class="accordion-body">
+                                        Helps prevent XSS attacks by controlling which resources can be loaded on the page.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingXFrame">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseXFrame">
+                                        X-Frame-Options
+                                    </button>
+                                </h2>
+                                <div id="collapseXFrame" class="accordion-collapse collapse" data-bs-parent="#securityAccordion">
+                                    <div class="accordion-body">
+                                        Prevents the page from being embedded in frames, protecting against clickjacking attacks.
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingHSTS">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHSTS">
+                                        Strict-Transport-Security (HSTS)
+                                    </button>
+                                </h2>
+                                <div id="collapseHSTS" class="accordion-collapse collapse" data-bs-parent="#securityAccordion">
+                                    <div class="accordion-body">
+                                        Forces browsers to use HTTPS connections, preventing man-in-the-middle attacks.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function scanUrl() {
+    const url = document.getElementById('urlInput').value.trim();
+    
+    if (!url) {
+        showAlert('Please enter a URL to scan.', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/api/scan_url', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: url })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            displayResults(data);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error scanning URL: ' + error.message, 'danger');
+    });
+}
+
+function displayResults(data) {
+    // Update basic info
+    document.getElementById('finalUrl').textContent = data.url;
+    document.getElementById('statusCode').innerHTML = `<span class="badge bg-${data.status_code === 200 ? 'success' : 'warning'}">${data.status_code}</span>`;
+    document.getElementById('httpsStatus').innerHTML = `<span class="badge bg-${data.is_https ? 'success' : 'danger'}">${data.is_https ? 'Yes' : 'No'}</span>`;
+    
+    // Update security score
+    const scoreColor = data.security_percentage >= 70 ? 'success' : data.security_percentage >= 40 ? 'warning' : 'danger';
+    document.getElementById('securityProgress').className = `progress-bar bg-${scoreColor}`;
+    document.getElementById('securityProgress').style.width = `${data.security_percentage}%`;
+    document.getElementById('securityScore').innerHTML = `<span class="text-${scoreColor}">${data.security_score}/${data.max_score} (${data.security_percentage}%)</span>`;
+    
+    // Update headers table
+    const headersTable = document.getElementById('headersTable');
+    headersTable.innerHTML = '';
+    
+    const headers = [
+        { name: 'Content-Security-Policy', value: data.security_headers['Content-Security-Policy'] },
+        { name: 'X-Frame-Options', value: data.security_headers['X-Frame-Options'] },
+        { name: 'X-Content-Type-Options', value: data.security_headers['X-Content-Type-Options'] },
+        { name: 'Strict-Transport-Security', value: data.security_headers['Strict-Transport-Security'] },
+        { name: 'X-XSS-Protection', value: data.security_headers['X-XSS-Protection'] }
+    ];
+    
+    headers.forEach(header => {
+        const row = headersTable.insertRow();
+        row.innerHTML = `
+            <td>${header.name}</td>
+            <td><span class="badge bg-${header.value ? 'success' : 'danger'}">${header.value ? 'Present' : 'Missing'}</span></td>
+            <td><code>${header.value || 'Not set'}</code></td>
+        `;
+    });
+    
+    // Generate recommendations
+    const recommendations = [];
+    if (!data.is_https) {
+        recommendations.push('Use HTTPS to encrypt data in transit');
+    }
+    if (!data.security_headers['Content-Security-Policy']) {
+        recommendations.push('Implement Content Security Policy to prevent XSS attacks');
+    }
+    if (!data.security_headers['X-Frame-Options']) {
+        recommendations.push('Add X-Frame-Options header to prevent clickjacking');
+    }
+    if (!data.security_headers['Strict-Transport-Security']) {
+        recommendations.push('Enable HSTS to force HTTPS connections');
+    }
+    if (!data.security_headers['X-Content-Type-Options']) {
+        recommendations.push('Add X-Content-Type-Options header to prevent MIME sniffing');
+    }
+    if (!data.security_headers['X-XSS-Protection']) {
+        recommendations.push('Enable X-XSS-Protection header for additional XSS protection');
+    }
+    
+    const recommendationsList = document.getElementById('recommendationsList');
+    recommendationsList.innerHTML = '';
+    
+    if (recommendations.length === 0) {
+        recommendationsList.innerHTML = '<li>Great! All basic security headers are properly configured.</li>';
+    } else {
+        recommendations.forEach(rec => {
+            const li = document.createElement('li');
+            li.textContent = rec;
+            recommendationsList.appendChild(li);
+        });
+    }
+    
+    document.getElementById('scanResults').style.display = 'block';
+    showAlert('URL scan completed successfully!', 'success');
+}
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.getElementById('alertMessage');
+    const alertText = document.getElementById('alertText');
+    
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertText.textContent = message;
+    alertDiv.style.display = 'block';
+    
+    setTimeout(hideAlert, 5000);
+}
+
+function hideAlert() {
+    document.getElementById('alertMessage').style.display = 'none';
+}
+</script>
+{% endblock %}

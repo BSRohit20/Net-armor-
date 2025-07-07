@@ -11,6 +11,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import json
 from datetime import datetime
+import hashlib
+import urllib.parse
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-this-in-production')
@@ -319,6 +321,249 @@ def decrypt_text():
         return jsonify({'success': True, 'result': decrypted_text})
     except Exception as e:
         return jsonify({'success': False, 'message': f'Decryption failed: {str(e)}'})
+
+@app.route('/hash-analyzer')
+def hash_analyzer():
+    """Hash & Checksum Analyzer page"""
+    return render_template('hash_analyzer.html')
+
+@app.route('/api/generate_hash', methods=['POST'])
+def generate_hash():
+    """API endpoint to generate hashes"""
+    data = request.json
+    text = data.get('text', '').strip()
+    
+    if not text:
+        return jsonify({'success': False, 'message': 'Please enter text to hash'})
+    
+    try:
+        text_bytes = text.encode('utf-8')
+        
+        hashes_result = {
+            'md5': hashlib.md5(text_bytes).hexdigest(),
+            'sha1': hashlib.sha1(text_bytes).hexdigest(),
+            'sha256': hashlib.sha256(text_bytes).hexdigest(),
+            'sha512': hashlib.sha512(text_bytes).hexdigest()
+        }
+        
+        return jsonify({'success': True, 'hashes': hashes_result})
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Hash generation failed: {str(e)}'})
+
+@app.route('/api/verify_hash', methods=['POST'])
+def verify_hash():
+    """API endpoint to verify hash"""
+    data = request.json
+    text = data.get('text', '').strip()
+    hash_value = data.get('hash', '').strip().lower()
+    
+    if not text or not hash_value:
+        return jsonify({'success': False, 'message': 'Please enter both text and hash'})
+    
+    try:
+        text_bytes = text.encode('utf-8')
+        
+        # Determine hash type by length
+        hash_type = 'unknown'
+        computed_hash = ''
+        
+        if len(hash_value) == 32:  # MD5
+            hash_type = 'MD5'
+            computed_hash = hashlib.md5(text_bytes).hexdigest()
+        elif len(hash_value) == 40:  # SHA1
+            hash_type = 'SHA1'
+            computed_hash = hashlib.sha1(text_bytes).hexdigest()
+        elif len(hash_value) == 64:  # SHA256
+            hash_type = 'SHA256'
+            computed_hash = hashlib.sha256(text_bytes).hexdigest()
+        elif len(hash_value) == 128:  # SHA512
+            hash_type = 'SHA512'
+            computed_hash = hashlib.sha512(text_bytes).hexdigest()
+        else:
+            return jsonify({'success': False, 'message': 'Unknown hash format'})
+        
+        is_match = computed_hash.lower() == hash_value
+        
+        return jsonify({
+            'success': True,
+            'hash_type': hash_type,
+            'computed_hash': computed_hash,
+            'is_match': is_match
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Hash verification failed: {str(e)}'})
+
+@app.route('/breach-checker')
+def breach_checker():
+    """Data Breach Checker page"""
+    return render_template('breach_checker.html')
+
+@app.route('/api/check_email_breach', methods=['POST'])
+def check_email_breach():
+    """API endpoint to check email for data breaches"""
+    data = request.json
+    email = data.get('email', '').strip().lower()
+    
+    if not email:
+        return jsonify({'success': False, 'message': 'Please enter an email address'})
+    
+    # Basic email validation
+    if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+        return jsonify({'success': False, 'message': 'Please enter a valid email address'})
+    
+    try:
+        # Using HaveIBeenPwned API
+        headers = {
+            'User-Agent': 'NET-ARMOR-Security-Toolkit'
+        }
+        
+        # URL encode the email
+        encoded_email = urllib.parse.quote(email)
+        url = f'https://haveibeenpwned.com/api/v3/breachedaccount/{encoded_email}'
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            breaches = response.json()
+            return jsonify({
+                'success': True,
+                'breached': True,
+                'breach_count': len(breaches),
+                'breaches': breaches
+            })
+        elif response.status_code == 404:
+            return jsonify({
+                'success': True,
+                'breached': False,
+                'message': 'No breaches found for this email'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Unable to check breaches at this time'
+            })
+    except requests.exceptions.RequestException:
+        return jsonify({
+            'success': False,
+            'message': 'Network error occurred while checking breaches'
+        })
+
+@app.route('/api/check_password_breach', methods=['POST'])
+def check_password_breach():
+    """API endpoint to check password for breaches using k-anonymity"""
+    data = request.json
+    password = data.get('password', '')
+    
+    if not password:
+        return jsonify({'success': False, 'message': 'Please enter a password'})
+    
+    try:
+        # Hash the password with SHA-1
+        sha1_hash = hashlib.sha1(password.encode('utf-8')).hexdigest().upper()
+        
+        # Use k-anonymity: send first 5 characters, get back suffixes
+        prefix = sha1_hash[:5]
+        suffix = sha1_hash[5:]
+        
+        headers = {
+            'User-Agent': 'NET-ARMOR-Security-Toolkit'
+        }
+        
+        url = f'https://api.pwnedpasswords.com/range/{prefix}'
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            # Check if our suffix is in the response
+            hashes = response.text.splitlines()
+            breach_count = 0
+            
+            for hash_line in hashes:
+                hash_suffix, count = hash_line.split(':')
+                if hash_suffix == suffix:
+                    breach_count = int(count)
+                    break
+            
+            return jsonify({
+                'success': True,
+                'breached': breach_count > 0,
+                'breach_count': breach_count
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Unable to check password breaches at this time'
+            })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Password breach check failed: {str(e)}'
+        })
+
+@app.route('/url-scanner')
+def url_scanner():
+    """URL Security Scanner page"""
+    return render_template('url_scanner.html')
+
+@app.route('/api/scan_url', methods=['POST'])
+def scan_url():
+    """API endpoint to scan URL for security threats"""
+    data = request.json
+    url = data.get('url', '').strip()
+    
+    if not url:
+        return jsonify({'success': False, 'message': 'Please enter a URL'})
+    
+    # Basic URL validation
+    if not re.match(r'^https?://', url):
+        url = 'http://' + url
+    
+    try:
+        # Check URL accessibility and get basic info
+        headers = {
+            'User-Agent': 'NET-ARMOR-Security-Toolkit/1.0'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+        
+        # Basic security checks
+        security_headers = {
+            'Content-Security-Policy': response.headers.get('Content-Security-Policy'),
+            'X-Frame-Options': response.headers.get('X-Frame-Options'),
+            'X-Content-Type-Options': response.headers.get('X-Content-Type-Options'),
+            'Strict-Transport-Security': response.headers.get('Strict-Transport-Security'),
+            'X-XSS-Protection': response.headers.get('X-XSS-Protection')
+        }
+        
+        security_score = 0
+        max_score = 5
+        
+        for header, value in security_headers.items():
+            if value:
+                security_score += 1
+        
+        # Check if HTTPS
+        is_https = url.startswith('https://')
+        if is_https:
+            security_score += 1
+            max_score += 1
+        
+        security_percentage = (security_score / max_score) * 100
+        
+        return jsonify({
+            'success': True,
+            'url': response.url,
+            'status_code': response.status_code,
+            'is_https': is_https,
+            'security_headers': security_headers,
+            'security_score': security_score,
+            'max_score': max_score,
+            'security_percentage': round(security_percentage, 1)
+        })
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'success': False,
+            'message': f'Unable to scan URL: {str(e)}'
+        })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

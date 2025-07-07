@@ -81,6 +81,45 @@
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 text-center toolkit-card">
             <div class="card-body d-flex flex-column">
+                <i class="fas fa-hashtag display-3 text-primary mb-3"></i>
+                <h5 class="card-title">Hash Analyzer</h5>
+                <p class="card-text flex-grow-1">Generate and verify MD5, SHA-1, SHA-256, and SHA-512 hashes for data integrity.</p>
+                <a href="{{ url_for('hash_analyzer') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Analyze Hash
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-exclamation-triangle display-3 text-danger mb-3"></i>
+                <h5 class="card-title">Data Breach Checker</h5>
+                <p class="card-text flex-grow-1">Check if your email or password has been compromised in known data breaches.</p>
+                <a href="{{ url_for('breach_checker') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Check Breaches
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-link display-3 text-warning mb-3"></i>
+                <h5 class="card-title">URL Security Scanner</h5>
+                <p class="card-text flex-grow-1">Analyze URLs for security headers, HTTPS configuration, and vulnerabilities.</p>
+                <a href="{{ url_for('url_scanner') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Scan URL
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
                 <i class="fas fa-arrow-left display-3 text-secondary mb-3"></i>
                 <h5 class="card-title">Back to Home</h5>
                 <p class="card-text flex-grow-1">Return to the main homepage to access other features.</p>

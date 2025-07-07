@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}Hash & Checksum Analyzer - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">
+                        <i class="fas fa-hashtag me-2"></i>Hash & Checksum Analyzer
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Generate MD5, SHA-1, SHA-256, and SHA-512 hashes for text or verify existing hashes.
+                    </p>
+
+                    <!-- Hash Generation -->
+                    <div class="mb-4">
+                        <h4><i class="fas fa-cogs me-2"></i>Generate Hashes</h4>
+                        <div class="form-group mb-3">
+                            <label for="textInput" class="form-label">Enter text to hash:</label>
+                            <textarea id="textInput" class="form-control" rows="4" placeholder="Enter your text here..."></textarea>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="generateHashes()">
+                            <i class="fas fa-play me-2"></i>Generate Hashes
+                        </button>
+                    </div>
+
+                    <!-- Hash Results -->
+                    <div id="hashResults" class="mb-4" style="display: none;">
+                        <h5><i class="fas fa-fingerprint me-2"></i>Generated Hashes</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">MD5:</label>
+                                <div class="input-group">
+                                    <input type="text" id="md5Result" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('md5Result')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">SHA-1:</label>
+                                <div class="input-group">
+                                    <input type="text" id="sha1Result" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('sha1Result')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">SHA-256:</label>
+                                <div class="input-group">
+                                    <input type="text" id="sha256Result" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('sha256Result')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">SHA-512:</label>
+                                <div class="input-group">
+                                    <input type="text" id="sha512Result" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" onclick="copyToClipboard('sha512Result')">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Hash Verification -->
+                    <div class="mb-4">
+                        <h4><i class="fas fa-shield-alt me-2"></i>Verify Hash</h4>
+                        <div class="form-group mb-3">
+                            <label for="verifyText" class="form-label">Original text:</label>
+                            <textarea id="verifyText" class="form-control" rows="3" placeholder="Enter the original text..."></textarea>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="hashToVerify" class="form-label">Hash to verify:</label>
+                            <input type="text" id="hashToVerify" class="form-control" placeholder="Enter the hash to verify...">
+                        </div>
+                        <button type="button" class="btn btn-success" onclick="verifyHash()">
+                            <i class="fas fa-check me-2"></i>Verify Hash
+                        </button>
+                    </div>
+
+                    <!-- Verification Results -->
+                    <div id="verificationResults" class="mb-4" style="display: none;">
+                        <h5><i class="fas fa-search me-2"></i>Verification Results</h5>
+                        <div class="alert" id="verificationAlert">
+                            <div id="verificationContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Loading Indicator -->
+                    <div id="loading" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Processing...</p>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertMessage" class="alert alert-dismissible fade show" role="alert" style="display: none;">
+                        <span id="alertText"></span>
+                        <button type="button" class="btn-close" onclick="hideAlert()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function generateHashes() {
+    const text = document.getElementById('textInput').value.trim();
+    
+    if (!text) {
+        showAlert('Please enter text to hash.', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/api/generate_hash', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: text })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            document.getElementById('md5Result').value = data.hashes.md5;
+            document.getElementById('sha1Result').value = data.hashes.sha1;
+            document.getElementById('sha256Result').value = data.hashes.sha256;
+            document.getElementById('sha512Result').value = data.hashes.sha512;
+            
+            document.getElementById('hashResults').style.display = 'block';
+            showAlert('Hashes generated successfully!', 'success');
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error generating hashes: ' + error.message, 'danger');
+    });
+}
+
+function verifyHash() {
+    const text = document.getElementById('verifyText').value.trim();
+    const hash = document.getElementById('hashToVerify').value.trim();
+    
+    if (!text || !hash) {
+        showAlert('Please enter both text and hash to verify.', 'warning');
+        return;
+    }
+    
+    showLoading();
+    
+    fetch('/api/verify_hash', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: text, hash: hash })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        
+        if (data.success) {
+            const alertClass = data.is_match ? 'alert-success' : 'alert-danger';
+            const icon = data.is_match ? 'fas fa-check-circle' : 'fas fa-times-circle';
+            const status = data.is_match ? 'MATCH' : 'NO MATCH';
+            
+            document.getElementById('verificationAlert').className = `alert ${alertClass}`;
+            document.getElementById('verificationContent').innerHTML = `
+                <h6><i class="${icon} me-2"></i>Verification Result: ${status}</h6>
+                <p><strong>Hash Type:</strong> ${data.hash_type}</p>
+                <p><strong>Computed Hash:</strong> <code>${data.computed_hash}</code></p>
+                <p><strong>Provided Hash:</strong> <code>${hash}</code></p>
+            `;
+            
+            document.getElementById('verificationResults').style.display = 'block';
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        showAlert('Error verifying hash: ' + error.message, 'danger');
+    });
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    document.execCommand('copy');
+    showAlert('Hash copied to clipboard!', 'success');
+}
+
+function showLoading() {
+    document.getElementById('loading').style.display = 'block';
+}
+
+function hideLoading() {
+    document.getElementById('loading').style.display = 'none';
+}
+
+function showAlert(message, type) {
+    const alertDiv = document.getElementById('alertMessage');
+    const alertText = document.getElementById('alertText');
+    
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertText.textContent = message;
+    alertDiv.style.display = 'block';
+    
+    setTimeout(hideAlert, 5000);
+}
+
+function hideAlert() {
+    document.getElementById('alertMessage').style.display = 'none';
+}
+</script>
+{% endblock %}

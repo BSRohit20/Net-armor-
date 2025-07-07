@@ -11,12 +11,17 @@ A comprehensive web-based digital security toolkit that provides essential cyber
 
 ## 🚀 **Live Application Features**
 
-### 🔐 **Security Tools Suite**
+### 🔐 **Core Security Tools**
 - **[Password Manager](https://web-production-07c5d.up.railway.app/password-manager)** - Securely store and manage passwords
 - **[Password Generator](https://web-production-07c5d.up.railway.app/password-generator)** - Generate strong, customizable passwords
 - **[Password Strength Checker](https://web-production-07c5d.up.railway.app/password-strength)** - Analyze password security with detailed feedback
 - **[IP Lookup Tool](https://web-production-07c5d.up.railway.app/ip-lookup)** - Get comprehensive IP address information
 - **[Encryption/Decryption](https://web-production-07c5d.up.railway.app/encryption)** - Secure text encryption using AES-256
+
+### 🛡️ **Advanced Security Analysis**
+- **[Hash & Checksum Analyzer](https://web-production-07c5d.up.railway.app/hash-analyzer)** - Generate and verify MD5, SHA-1, SHA-256, SHA-512 hashes
+- **[Data Breach Checker](https://web-production-07c5d.up.railway.app/breach-checker)** - Check email/password breaches using HaveIBeenPwned API
+- **[URL Security Scanner](https://web-production-07c5d.up.railway.app/url-scanner)** - Analyze websites for security headers and vulnerabilities
 
 ### 👥 **Community Features**
 - **[Community Posts](https://web-production-07c5d.up.railway.app/community)** - Share experiences and learn from security community
