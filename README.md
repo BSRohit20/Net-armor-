@@ -144,22 +144,35 @@ NET ARMOR/
 ├── 📄 app.py                    # Main Flask application
 ├── 📄 requirements.txt          # Python dependencies
 ├── 📄 Procfile                 # Railway deployment config
+├── 📄 render.yaml              # Render.com deployment config
 ├── 📄 Dockerfile               # Docker container setup
-├── 📁 templates/               # HTML templates
+├── � docker-compose.yml       # Docker Compose setup
+├── �📁 templates/               # HTML templates
 │   ├── 📄 base.html            # Base template with Bootstrap
 │   ├── 📄 index.html           # Homepage
+│   ├── 📄 login.html           # User authentication
+│   ├── 📄 register.html        # User registration
+│   ├── 📄 dashboard.html       # User dashboard
 │   ├── 📄 community.html       # Community posts
 │   ├── 📄 toolkit.html         # Tools overview
 │   ├── 📄 password_manager.html
 │   ├── 📄 password_generator.html
 │   ├── 📄 password_strength.html
 │   ├── 📄 ip_lookup.html
-│   └── 📄 encryption.html
-├── 📁 static/                  # CSS, JS, images
-└── 📁 deployment/              # Deployment scripts
-    ├── 📄 deploy.bat           # Windows deployment
-    ├── 📄 one-click-deploy.bat # Automated deployment
-    └── 📄 setup-git.bat        # Git initialization
+│   ├── 📄 encryption.html
+│   ├── � hash_analyzer.html
+│   ├── 📄 breach_checker.html
+│   └── 📄 url_scanner.html
+├── �📁 static/                  # CSS, JS, images
+├── 📁 deployment/              # Deployment scripts
+│   ├── 📄 deploy.bat           # Windows deployment
+│   ├── 📄 deploy-to-render.bat # Render deployment script
+│   ├── 📄 one-click-deploy.bat # Automated deployment
+│   └── 📄 setup-git.bat        # Git initialization
+└── 📁 docs/                    # Documentation
+    ├── 📄 RENDER_DEPLOYMENT_GUIDE.md
+    ├── 📄 GOOGLE_OAUTH_SETUP.md
+    └── 📄 EMAIL_VALIDATION_FEATURES.md
 ```
 
 ## � **Features Showcase**
@@ -184,6 +197,19 @@ NET ARMOR/
 - **Error Handling** with user-friendly messages
 - **Logging** for debugging and monitoring
 
+## 🚀 **Quick Deploy Buttons**
+
+Deploy NET ARMOR instantly on your preferred platform:
+
+[![Deploy to Railway](https://railway.app/button.svg)](https://railway.app/new/template/railway)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+**One-Click Deployment Scripts:**
+- 🪟 **Windows**: Run `deploy-to-render.bat`
+- 🐧 **Linux/macOS**: See `RENDER_DEPLOYMENT_GUIDE.md`
+
+---
+
 ## 🚀 **Deployment Options**
 
 ### **Current Deployment: Railway.app**
@@ -194,11 +220,62 @@ NET ARMOR/
 - **HTTPS SSL** certificate included
 
 ### **Alternative Deployments**
-- **Heroku** - Free tier available
-- **Vercel** - Excellent for static sites
-- **DigitalOcean** - Full VPS control
-- **AWS/Azure** - Enterprise scaling
-- **Docker** - Container deployment
+
+#### **🌐 Render.com Deployment**
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
+
+**Step-by-Step Render Deployment:**
+
+1. **Fork/Upload Repository**
+   - Go to [Render.com](https://render.com) and sign up/login
+   - Connect your GitHub account or upload your repository
+
+2. **Create New Web Service**
+   - Click "New +" → "Web Service"
+   - Connect your NET ARMOR repository
+   - Choose "main" branch
+
+3. **Configure Deployment Settings**
+   ```
+   Name: net-armor-app (or your preferred name)
+   Region: Choose closest to your users
+   Branch: main
+   Runtime: Python 3
+   Build Command: pip install -r requirements.txt
+   Start Command: gunicorn app:app
+   ```
+
+4. **Environment Variables** (Optional)
+   ```
+   FLASK_ENV=production
+   SECRET_KEY=your-secret-key-here
+   GOOGLE_CLIENT_ID=your-google-oauth-id (if using OAuth)
+   GOOGLE_CLIENT_SECRET=your-google-oauth-secret (if using OAuth)
+   ```
+
+5. **Deploy**
+   - Click "Create Web Service"
+   - Wait for build to complete (~2-3 minutes)
+   - Your app will be live at: `https://your-app-name.onrender.com`
+
+**Render Features:**
+- ✅ **Free Tier Available** - Perfect for testing
+- ✅ **Auto-deploys** from GitHub
+- ✅ **SSL Certificates** included
+- ✅ **Custom Domains** supported
+- ✅ **Global CDN** for fast loading
+
+#### **🚀 Other Platforms**
+
+| Platform | Free Tier | Auto Deploy | SSL/HTTPS | Custom Domain | Database | Best For |
+|----------|-----------|-------------|-----------|---------------|-----------|----------|
+| **Railway** | $5 credit | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Current deployment |
+| **Render** | 750h/month | ✅ | ✅ Free | ✅ Free | 🔄 Add-ons | **Recommended alternative** |
+| **Heroku** | ❌ Discontinued | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Legacy apps |
+| **Vercel** | ✅ Limited | ✅ | ✅ Free | ✅ Free | ❌ External | Static/Jamstack |
+| **DigitalOcean** | ❌ $4/month | 🔄 Manual | 🔄 Setup | ✅ Full control | ✅ Full control | VPS control |
+
+**💡 Recommendation**: Use **Render.com** for the best free alternative to Railway with similar features and better free tier limits.
 
 ## 🛠️ **Development Setup**
 

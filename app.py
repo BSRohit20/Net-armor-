@@ -5,7 +5,7 @@ import string
 import re
 import requests
 import base64
-import os
+import tempfile
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -19,7 +19,10 @@ from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-this-in-production')
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Detect if running in production (deployment platform)
+IS_PRODUCTION = os.environ.get('RAILWAY_ENVIRONMENT') or os.environ.get('RENDER') or os.environ.get('PORT')
 
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
@@ -33,56 +36,123 @@ GOOGLE_OAUTH_ENABLED = bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and
 # OAuth 2.0 client configuration for Google (only if enabled)
 client_config = None
 if GOOGLE_OAUTH_ENABLED:
+    # Get the base URL for OAuth redirects
+    base_url = os.environ.get('BASE_URL', 'http://localhost:5000')
+    if base_url.endswith('/'):
+        base_url = base_url[:-1]
+    
     client_config = {
         "web": {
             "client_id": GOOGLE_CLIENT_ID,
             "client_secret": GOOGLE_CLIENT_SECRET,
             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
             "token_uri": "https://oauth2.googleapis.com/token",
-            "redirect_uris": ["http://localhost:5000/auth/google/callback"]
+            "redirect_uris": [f"{base_url}/auth/google/callback"]
         }
     }
 
-# File to store community posts, passwords, and users
-POSTS_FILE = 'community_posts.json'
-PASSWORDS_FILE = 'passwords.json'
-USERS_FILE = 'users.json'
+# In-memory storage for production, file storage for development
+if IS_PRODUCTION:
+    # Use in-memory storage for production deployments
+    community_posts = []
+    user_passwords = []
+    users_data = []
+    
+    # File paths won't be used in production
+    POSTS_FILE = None
+    PASSWORDS_FILE = None
+    USERS_FILE = None
+else:
+    # Use file storage for development
+    POSTS_FILE = 'community_posts.json'
+    PASSWORDS_FILE = 'passwords.json'
+    USERS_FILE = 'users.json'
+    
+    # Initialize in-memory storage as None for development
+    community_posts = None
+    user_passwords = None
+    users_data = None
 
 def load_posts():
-    """Load community posts from file"""
-    if os.path.exists(POSTS_FILE):
-        with open(POSTS_FILE, 'r') as f:
-            return json.load(f)
-    return []
+    """Load community posts from file or memory"""
+    global community_posts
+    if IS_PRODUCTION:
+        return community_posts if community_posts is not None else []
+    else:
+        if os.path.exists(POSTS_FILE):
+            try:
+                with open(POSTS_FILE, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                return []
+        return []
 
 def save_posts(posts):
-    """Save community posts to file"""
-    with open(POSTS_FILE, 'w') as f:
-        json.dump(posts, f, indent=2)
+    """Save community posts to file or memory"""
+    global community_posts
+    if IS_PRODUCTION:
+        community_posts = posts
+    else:
+        try:
+            with open(POSTS_FILE, 'w') as f:
+                json.dump(posts, f, indent=2)
+        except IOError:
+            # If file write fails, store in memory as fallback
+            community_posts = posts
 
 def load_passwords():
-    """Load saved passwords from file"""
-    if os.path.exists(PASSWORDS_FILE):
-        with open(PASSWORDS_FILE, 'r') as f:
-            return json.load(f)
-    return []
+    """Load saved passwords from file or memory"""
+    global user_passwords
+    if IS_PRODUCTION:
+        return user_passwords if user_passwords is not None else []
+    else:
+        if os.path.exists(PASSWORDS_FILE):
+            try:
+                with open(PASSWORDS_FILE, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                return []
+        return []
 
 def save_passwords(passwords):
-    """Save passwords to file"""
-    with open(PASSWORDS_FILE, 'w') as f:
-        json.dump(passwords, f, indent=2)
+    """Save passwords to file or memory"""
+    global user_passwords
+    if IS_PRODUCTION:
+        user_passwords = passwords
+    else:
+        try:
+            with open(PASSWORDS_FILE, 'w') as f:
+                json.dump(passwords, f, indent=2)
+        except IOError:
+            # If file write fails, store in memory as fallback
+            user_passwords = passwords
 
 def load_users():
-    """Load users from file"""
-    if os.path.exists(USERS_FILE):
-        with open(USERS_FILE, 'r') as f:
-            return json.load(f)
-    return []
+    """Load users from file or memory"""
+    global users_data
+    if IS_PRODUCTION:
+        return users_data if users_data is not None else []
+    else:
+        if os.path.exists(USERS_FILE):
+            try:
+                with open(USERS_FILE, 'r') as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                return []
+        return []
 
 def save_users(users):
-    """Save users to file"""
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=2)
+    """Save users to file or memory"""
+    global users_data
+    if IS_PRODUCTION:
+        users_data = users
+    else:
+        try:
+            with open(USERS_FILE, 'w') as f:
+                json.dump(users, f, indent=2)
+        except IOError:
+            # If file write fails, store in memory as fallback
+            users_data = users
 
 def hash_password(password):
     """Hash password using SHA-256"""
@@ -104,7 +174,11 @@ def login_required(f):
 @app.route('/')
 def index():
     """Main homepage"""
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        app.logger.error(f"Error in index route: {str(e)}")
+        return f"<h1>NET ARMOR Security Toolkit</h1><p>Welcome to NET ARMOR! The application is starting up.</p><p>Error: {str(e)}</p>", 500
 
 @app.route('/login')
 def login():
@@ -934,7 +1008,78 @@ def validate_email():
     except Exception as e:
         return jsonify({'success': False, 'message': 'Email validation failed'})
 
+def init_app():
+    """Initialize application data"""
+    global community_posts, user_passwords, users_data
+    
+    if IS_PRODUCTION:
+        # Initialize in-memory storage for production
+        if community_posts is None:
+            community_posts = []
+        if user_passwords is None:
+            user_passwords = []
+        if users_data is None:
+            users_data = []
+        
+        app.logger.info("Running in PRODUCTION mode - using in-memory storage")
+    else:
+        app.logger.info("Running in DEVELOPMENT mode - using file storage")
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    """Handle internal server errors"""
+    app.logger.error(f"Internal Server Error: {str(error)}")
+    return render_template('error.html', 
+                         error="Internal Server Error", 
+                         message="Something went wrong on our end. Please try again later."), 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    """Handle 404 errors"""
+    return render_template('error.html', 
+                         error="Page Not Found", 
+                         message="The page you're looking for doesn't exist."), 404
+
+@app.route('/api/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Test basic functionality
+        posts = load_posts()
+        users = load_users()
+        
+        return jsonify({
+            'status': 'healthy',
+            'app': 'NET ARMOR Security Toolkit',
+            'version': '2.0',
+            'environment': 'production' if IS_PRODUCTION else 'development',
+            'storage': 'in-memory' if IS_PRODUCTION else 'file-based',
+            'google_oauth': GOOGLE_OAUTH_ENABLED,
+            'data': {
+                'posts_count': len(posts),
+                'users_count': len(users)
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
 if __name__ == '__main__':
+    # Initialize the application
+    init_app()
+    
     port = int(os.environ.get('PORT', 5000))
-    debug_mode = os.environ.get('FLASK_ENV') == 'development'
-    app.run(debug=debug_mode, host='0.0.0.0', port=port)
+    debug_mode = os.environ.get('FLASK_ENV') == 'development' and not IS_PRODUCTION
+    
+    app.logger.info(f"Starting NET ARMOR on port {port}")
+    app.logger.info(f"Production mode: {IS_PRODUCTION}")
+    app.logger.info(f"Debug mode: {debug_mode}")
+    app.logger.info(f"Google OAuth enabled: {GOOGLE_OAUTH_ENABLED}")
+    
+    try:
+        app.run(debug=debug_mode, host='0.0.0.0', port=port)
+    except Exception as e:
+        app.logger.error(f"Failed to start application: {str(e)}")
+        print(f"ERROR: Failed to start NET ARMOR - {str(e)}")
