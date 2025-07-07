@@ -1,29 +1,4 @@
-{% exte        <div class="col-12">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    {% if session.picture %}
-                        <img src="{{ session.picture }}" alt="Profile" class="rounded-circle me-3" width="50" height="50">
-                    {% else %}
-                        <i class="fas fa-user-circle fa-3x me-3"></i>
-                    {% endif %}
-                    <div>
-                        <h2 class="mb-0">
-                            Welcome, {{ session.full_name or username }}!
-                        </h2>
-                        {% if session.email %}
-                            <small class="text-light opacity-75">{{ session.email }}</small>
-                        {% endif %}
-                        {% if session.login_method == 'google' %}
-                            <small class="badge bg-light text-dark ms-2">
-                                <i class="fab fa-google me-1"></i>Google Account
-                            </small>
-                        {% endif %}
-                    </div>
-                </div>
-                <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
-                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                </a>
-            </div>.html" %}
+{% extends "base.html" %}
 
 {% block title %}Dashboard - NET ARMOR{% endblock %}
 
