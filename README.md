@@ -1,104 +1,129 @@
-# 🛡️ NET ARMOR - Digital Security Toolkit
+# 🛡️ NET ARMOR - Advanced Cybersecurity Toolkit
 
 **Live Demo:** 🌐 **[https://net-armor.onrender.com/](https://net-armor.onrender.com/)**
 
-A comprehensive web-based digital security toolkit that provides essential cybersecurity tools accessible from any device, anywhere in the world. Originally developed as a PyQt5 desktop application, NET ARMOR has been converted to a modern web application for global accessibility.
+A comprehensive, production-ready cybersecurity toolkit that provides professional-grade security analysis tools accessible from any device, anywhere in the world. NET ARMOR combines traditional security utilities with cutting-edge vulnerability assessment capabilities.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20App-blue?style=for-the-badge&logo=render)](https://net-armor.onrender.com/)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-2.3.3-green?style=for-the-badge&logo=flask)](https://flask.palletsprojects.com/)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.1.3-purple?style=for-the-badge&logo=bootstrap)](https://getbootstrap.com/)
+[![Security](https://img.shields.io/badge/Security-Professional%20Grade-red?style=for-the-badge&logo=security)](https://net-armor.onrender.com/)
 
-## 🚀 **Live Application Features**
+## 🚀 **Enterprise-Grade Security Tools**
+
+### 🛡️ **Advanced Security Analysis Suite**
+- **[Domain Security Scanner](https://net-armor.onrender.com/domain-scanner)** - Comprehensive domain security assessment with SSL, DNS, and port analysis
+- **[Vulnerability Scanner](https://net-armor.onrender.com/vulnerability-scanner)** - Web application vulnerability detection and assessment
+- **[Password Policy Analyzer](https://net-armor.onrender.com/password-policy-analyzer)** - Enterprise password policy evaluation and scoring
 
 ### 🔐 **Core Security Tools**
-- **[Password Manager](https://net-armor.onrender.com/password-manager)** - Securely store and manage passwords
-- **[Password Generator](https://net-armor.onrender.com/password-generator)** - Generate strong, customizable passwords
-- **[Password Strength Checker](https://net-armor.onrender.com/password-strength)** - Analyze password security with detailed feedback
-- **[IP Lookup Tool](https://net-armor.onrender.com/ip-lookup)** - Get comprehensive IP address information
-- **[Encryption/Decryption](https://net-armor.onrender.com/encryption)** - Secure text encryption using AES-256
+- **[Password Manager](https://net-armor.onrender.com/password-manager)** - Encrypted password storage with AES-256
+- **[Password Generator](https://net-armor.onrender.com/password-generator)** - Cryptographically secure password generation
+- **[Password Strength Checker](https://net-armor.onrender.com/password-strength)** - Advanced password analysis with entropy calculation
+- **[Encryption/Decryption](https://net-armor.onrender.com/encryption)** - Military-grade AES-256 text encryption
 
-### 🛡️ **Advanced Security Analysis**
-- **[Hash & Checksum Analyzer](https://net-armor.onrender.com/hash-analyzer)** - Generate and verify MD5, SHA-1, SHA-256, SHA-512 hashes
-- **[Data Breach Checker](https://net-armor.onrender.com/breach-checker)** - Check email/password breaches using HaveIBeenPwned API
-- **[URL Security Scanner](https://net-armor.onrender.com/url-scanner)** - Analyze websites for security headers and vulnerabilities
+### 🌐 **Network & Web Security**
+- **[IP Lookup Tool](https://net-armor.onrender.com/ip-lookup)** - Comprehensive IP address intelligence
+- **[Hash & Checksum Analyzer](https://net-armor.onrender.com/hash-analyzer)** - Multi-algorithm hash generation and verification
+- **[Data Breach Checker](https://net-armor.onrender.com/breach-checker)** - Real-time breach database lookups
+- **[URL Security Scanner](https://net-armor.onrender.com/url-scanner)** - Website security header analysis
 
-### 👥 **Authentication & User Management**
-- **[User Registration](https://net-armor.onrender.com/register)** - Create new accounts with email/password
-- **[User Login](https://net-armor.onrender.com/login)** - Secure authentication system
-- **[Google OAuth](https://net-armor.onrender.com/login)** - Sign in/up with Google account
-- **[User Dashboard](https://net-armor.onrender.com/dashboard)** - Personalized user experience
-- **Session Management** - Secure login sessions with logout functionality
+### 🔒 **Authentication & Analytics**
+- **[Real-time Analytics Dashboard](https://net-armor.onrender.com/analytics)** - Professional security metrics and activity monitoring
+- **[JWT Authentication System](https://net-armor.onrender.com/login)** - Modern token-based authentication
+- **[Two-Factor Authentication (2FA)](https://net-armor.onrender.com/dashboard)** - TOTP-based multi-factor security
+- **[User Management](https://net-armor.onrender.com/register)** - Secure user registration and session management
 
-### 👥 **Community Features**
-- **[Community Posts](https://net-armor.onrender.com/community)** - Share experiences and learn from security community
+## 🏆 **What Makes NET ARMOR Unique**
 
-## 📱 **Cross-Platform Access**
+### **🎯 Professional-Grade Security**
+- **Domain Security Scanner** performs comprehensive security assessments including SSL certificate analysis, DNS security checks, security header evaluation, and port scanning with detailed recommendations
+- **Vulnerability Scanner** detects real security vulnerabilities including missing security headers, server information disclosure, directory listing issues, and basic injection vulnerabilities
+- **Password Policy Analyzer** uses intelligent natural language processing to evaluate organizational password policies with enterprise-grade scoring and recommendations
+
+### **📊 Advanced Analytics & Monitoring**
+- **Real-time Analytics Dashboard** with interactive charts, security metrics, and activity logs
+- **JWT Token System** for secure API access and session management
+- **Two-Factor Authentication** with TOTP for enhanced security
+- **Activity Logging** tracks all security tool usage for audit purposes
+- **Rate Limiting** prevents abuse and ensures service availability
+
+### **🔐 Enterprise Security Features**
+- **AES-256 Encryption** with PBKDF2 key derivation (100,000 iterations)
+- **Secure Password Storage** with SHA-256 hashing
+- **Input Validation & Sanitization** on all endpoints
+- **CSRF Protection** and secure session management
+- **Progressive Web App (PWA)** support for offline functionality
+
+## 🔍 **Featured Security Tools Deep Dive**
+
+### **🌐 Domain Security Scanner**
+Performs comprehensive security analysis of any domain:
+- **SSL/TLS Certificate Analysis** - Validity, expiration, cipher suites, and security protocols
+- **DNS Security Assessment** - DNS resolution, MX records, and configuration analysis  
+- **Security Headers Evaluation** - HSTS, CSP, X-Frame-Options, and other protective headers
+- **Port Scanning** - Common ports analysis with security risk assessment
+- **Security Scoring** - 0-100 score with detailed improvement recommendations
+
+### **🛡️ Vulnerability Scanner**
+Professional vulnerability assessment capabilities:
+- **Web Application Security** - HTTP/HTTPS configuration, redirect policies
+- **Security Headers Testing** - Missing or misconfigured security headers
+- **Information Disclosure** - Server version leakage and directory listing issues
+- **Basic Injection Testing** - SQL injection vulnerability detection (advanced mode)
+- **Vulnerability Categorization** - Critical, High, Medium, Low severity classification
+
+### **📊 Password Policy Analyzer**
+Advanced password policy evaluation system:
+- **Natural Language Processing** - Intelligent analysis of policy documents
+- **Comprehensive Scoring** - Multi-factor evaluation with A-F grading
+- **Requirement Analysis** - Length, character, complexity, and expiration policies
+- **Security Pattern Detection** - MFA, lockout policies, and advanced security features
+- **Enterprise Recommendations** - Tailored suggestions for policy improvement
+
+## 📱 **Universal Access & Compatibility**
 
 ✅ **Desktop Browsers** (Chrome, Firefox, Safari, Edge)  
-✅ **Mobile Devices** (iOS, Android)  
+✅ **Mobile Devices** (iOS, Android) with PWA support  
 ✅ **Tablets** (iPad, Android tablets)  
 ✅ **Any Operating System** (Windows, macOS, Linux)  
-✅ **Global Internet Access** - No downloads required!
+✅ **Offline Capability** - PWA functionality for core tools  
+✅ **Global CDN** - Fast worldwide access with 99.9% uptime
 
-## 🎨 **Tech Stack**
+## 🔧 **Modern Technology Stack**
 
-### **Backend Technologies**
-- **Python 3.9+** - Core programming language
-- **Flask 2.3.3** - Modern web framework
-- **Gunicorn** - Production WSGI server for deployment
-- **Cryptography** - AES-256 encryption library
-- **Requests** - HTTP library for API integrations
-- **Google OAuth2** - Authentication integration
-- **JSON** - Data storage and API responses
+### **Backend Architecture**
+- **Python 3.9+** with modern async capabilities
+- **Flask 2.3.3** with advanced routing and middleware
+- **PyJWT** for secure token management
+- **PyOTP** for two-factor authentication
+- **Cryptography** library for AES-256 encryption
+- **Custom Security Utils** for rate limiting and activity logging
 
 ### **Frontend Technologies**
-- **HTML5** - Semantic markup with modern standards
-- **CSS3** - Advanced styling with gradients and glassmorphism effects
-- **Bootstrap 5.1.3** - Responsive UI framework
-- **Font Awesome 6.0** - Professional icon library
-- **Vanilla JavaScript (ES6+)** - Interactive functionality and AJAX
-- **Fetch API** - Modern asynchronous HTTP requests
-- **Progressive Web App** - Mobile-responsive design
+- **Progressive Web App (PWA)** with service workers
+- **Bootstrap 5.1.3** with custom security-focused styling
+- **Chart.js** for interactive analytics dashboards
+- **Font Awesome 6.0** for professional iconography
+- **Modern JavaScript (ES6+)** with async/await patterns
+- **Responsive Design** optimized for all devices
 
-### **Security & Encryption**
-- **AES-256 Encryption** - Industry-standard symmetric encryption
-- **PBKDF2** - Password-based key derivation with 100,000 iterations
-- **SHA-256 Hashing** - Secure password storage
-- **HTTPS/TLS** - Encrypted data transmission
-- **CSRF Protection** - Cross-site request forgery prevention
-- **Input Validation** - Server-side data sanitization
-
-### **APIs & Integrations**
-- **HaveIBeenPwned API** - Data breach checking
-- **Google OAuth 2.0** - Secure authentication
-- **IP-API** - IP address geolocation data
-- **DNS Lookup** - Domain validation services
-
-### **Deployment & Infrastructure**
-- **Render.com** - Cloud hosting platform
-- **Docker** - Containerization support
-- **Git** - Version control system
-- **GitHub** - Repository hosting and CI/CD
-- **Environment Variables** - Secure configuration management
-- **In-Memory Storage** - Production data handling
-
-## 🔒 **Security Features**
-
-- **🔐 AES-256 Encryption** with PBKDF2 key derivation (100,000 iterations)
-- **🛡️ Secure Password Storage** with industry-standard practices
-- **🌐 HTTPS Enabled** for all communications
-- **🔑 Environment-based Secret Keys** for production security
-- **📝 Input Validation** and sanitization on all forms
+### **Security & Compliance**
+- **JWT Authentication** with secure token handling
+- **TOTP Two-Factor Authentication** for enhanced security
+- **Rate Limiting** to prevent abuse and ensure availability
+- **Activity Logging** for comprehensive audit trails
+- **Input Validation** with server-side sanitization
+- **HTTPS/TLS** encryption for all communications
 
 ## 🚀 **Quick Start**
 
-### **Use Online (Recommended)**
-Simply visit: **[https://net-armor.onrender.com/](https://net-armor.onrender.com/)**
+### **🌐 Use Online (Recommended)**
+Visit: **[https://net-armor.onrender.com/](https://net-armor.onrender.com/)**
 
-No installation required! All tools work directly in your browser.
+No installation required! All professional security tools work directly in your browser with enterprise-grade security.
 
-### **Run Locally**
+### **🖥️ Run Locally**
 ```bash
 # Clone the repository
 git clone https://github.com/BSRohit20/Net-armor-.git
@@ -113,360 +138,180 @@ python app.py
 
 Access at: `http://localhost:5000`
 
-## 📖 **User Guide**
+### **🐳 Docker Deployment**
+```bash
+# Build and run with Docker
+docker-compose up --build
+```
 
-### **🔑 Password Manager**
-1. Navigate to [Password Manager](https://net-armor.onrender.com/password-manager)
-2. Add new passwords with website, username, and password
-3. View saved passwords (click copy to clipboard)
-4. All data is stored securely
+## 📖 **Professional Usage Guide**
 
-### **🎲 Password Generator**
-1. Go to [Password Generator](https://net-armor.onrender.com/password-generator)
-2. Set desired length (4-128 characters)
-3. Choose character types (uppercase, lowercase, digits, special)
-4. Generate and copy strong passwords
-5. Save directly to Password Manager
+### **🔍 Domain Security Scanner**
+1. Navigate to the Domain Scanner tool
+2. Enter any domain name (e.g., `example.com`)
+3. Receive comprehensive security analysis including:
+   - SSL certificate details and expiration warnings
+   - DNS configuration and security assessment
+   - Security headers evaluation and recommendations
+   - Open ports analysis with risk assessment
+   - Overall security score (0-100) with improvement suggestions
 
-### **⚡ Password Strength Checker**
-1. Visit [Password Strength Checker](https://net-armor.onrender.com/password-strength)
-2. Enter any password to analyze
-3. Get detailed strength assessment
-4. Receive improvement recommendations
-5. Real-time feedback on security requirements
+### **🛡️ Vulnerability Scanner**
+1. Access the Vulnerability Scanner
+2. Enter target domain and select scan type (Basic/Advanced)
+3. Get detailed vulnerability report with:
+   - Categorized vulnerabilities by severity
+   - Specific security issues found
+   - Remediation recommendations
+   - Professional-grade security assessment
 
-### **🌐 IP Lookup Tool**
-1. Access [IP Lookup](https://net-armor.onrender.com/ip-lookup)
-2. Enter any IPv4 address or click "My IP"
-3. Get comprehensive information:
-   - Geographic location
-   - ISP and network details
-   - Timezone and currency info
-   - Coordinates and more
+### **📊 Password Policy Analyzer**
+1. Open the Password Policy Analyzer
+2. Paste your organization's password policy text
+3. Receive intelligent analysis including:
+   - Comprehensive policy scoring (A-F grade)
+   - Detailed strengths and weaknesses analysis
+   - Compliance with security best practices
+   - Tailored improvement recommendations
 
-### **🔐 Encryption/Decryption**
-1. Open [Encryption Tool](https://net-armor.onrender.com/encryption)
-2. **Encrypt**: Enter text and password, get encrypted output
-3. **Decrypt**: Enter encrypted text and same password
-4. Uses military-grade AES-256 encryption
-5. Copy results to clipboard
+### **📈 Analytics Dashboard**
+1. Visit the Analytics Dashboard after login
+2. Monitor real-time security metrics:
+   - Tool usage statistics and trends
+   - User activity and engagement metrics
+   - Security tool effectiveness analysis
+   - Interactive charts and visualizations
 
-### **💬 Community Posts**
-1. Visit [Community](https://net-armor.onrender.com/community)
-2. Share security experiences and tips
-3. Ask questions and learn from others
-4. Real-time post updates
-
-## 🏗️ **Project Structure**
+## 🏗️ **Project Architecture**
 
 ```
 NET ARMOR/
-├── 📄 app.py                    # Main Flask application
+├── 📄 app.py                    # Main Flask application with all routes
+├── 📄 security_utils.py         # JWT, 2FA, analytics, and security utilities
 ├── 📄 requirements.txt          # Python dependencies
-├── 📄 Procfile                 # Railway/Heroku deployment config
-├── 📄 render.yaml              # Render deployment config
+├── 📄 test_app.py              # Comprehensive test suite (pytest)
+├── 📄 Procfile                 # Production deployment config
 ├── 📄 render.yaml              # Render.com deployment config
-├── 📄 Dockerfile               # Docker container setup
-├── � docker-compose.yml       # Docker Compose setup
-├── �📁 templates/               # HTML templates
-│   ├── 📄 base.html            # Base template with Bootstrap
-│   ├── 📄 index.html           # Homepage
-│   ├── 📄 login.html           # User authentication
-│   ├── 📄 register.html        # User registration
-│   ├── 📄 dashboard.html       # User dashboard
-│   ├── 📄 community.html       # Community posts
-│   ├── 📄 toolkit.html         # Tools overview
-│   ├── 📄 password_manager.html
-│   ├── 📄 password_generator.html
-│   ├── 📄 password_strength.html
-│   ├── 📄 ip_lookup.html
-│   ├── 📄 encryption.html
-│   ├── � hash_analyzer.html
-│   ├── 📄 breach_checker.html
-│   └── 📄 url_scanner.html
-├── �📁 static/                  # CSS, JS, images
-├── 📁 deployment/              # Deployment scripts
-│   ├── 📄 deploy.bat           # Windows deployment
-│   ├── 📄 deploy-to-render.bat # Render deployment script
-│   ├── 📄 one-click-deploy.bat # Automated deployment
-│   └── 📄 setup-git.bat        # Git initialization
-└── 📁 docs/                    # Documentation
-    ├── 📄 RENDER_DEPLOYMENT_GUIDE.md
-    ├── 📄 GOOGLE_OAUTH_SETUP.md
-    └── 📄 EMAIL_VALIDATION_FEATURES.md
+├── 📄 Dockerfile               # Docker containerization
+├── 📄 docker-compose.yml       # Docker Compose setup
+├── 📄 users.json               # User data storage (production uses databases)
+├── 📁 templates/               # HTML templates
+│   ├── 📄 base.html            # Base template with security styling
+│   ├── 📄 analytics.html       # Real-time analytics dashboard
+│   ├── 📄 domain_scanner.html  # Domain security scanner UI
+│   ├── 📄 vulnerability_scanner.html # Vulnerability assessment UI
+│   ├── 📄 password_policy_analyzer.html # Policy analysis UI
+│   └── 📄 [other tools].html   # Additional security tools
+└── 📁 static/                  # Static assets
+    ├── 📄 manifest.json        # PWA manifest
+    └── 📄 sw.js               # Service worker for offline functionality
 ```
 
-## � **Features Showcase**
+## 🚀 **One-Click Deployment**
 
-### **🎨 Modern UI/UX**
-- **Glassmorphism Design** with translucent cards
-- **Gradient Backgrounds** for visual appeal
-- **Responsive Layout** adapts to any screen size
-- **Smooth Animations** and hover effects
-- **Dark Theme** optimized for security focus
+Deploy NET ARMOR instantly on professional cloud platforms:
 
-### **⚡ Performance**
-- **Fast Loading** optimized for global access
-- **CDN Assets** for quick resource delivery
-- **Efficient APIs** with minimal data transfer
-- **Responsive Design** works on slow connections
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/BSRohit20/Net-armor-)
 
-### **� Developer Features**
-- **RESTful API** endpoints for all tools
-- **JSON Data Storage** (easily upgradeable to database)
-- **Environment Configuration** for different deployments
-- **Error Handling** with user-friendly messages
-- **Logging** for debugging and monitoring
+**Deployment Features:**
+- ✅ **Auto-scaling** based on demand
+- ✅ **Global CDN** for fast worldwide access
+- ✅ **SSL/HTTPS** included automatically
+- ✅ **Environment variable** management
+- ✅ **99.9% Uptime** guarantee
+- ✅ **Professional monitoring** and logging
 
-## 🚀 **Quick Deploy Buttons**
+## 🧪 **Testing & Quality Assurance**
 
-Deploy NET ARMOR instantly on your preferred platform:
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-
-[![Deploy to Railway](https://railway.app/button.svg)](https://railway.app/new/template/railway)
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
-
-**One-Click Deployment Scripts:**
-- 🪟 **Windows**: Run `deploy-to-render.bat`
-- 🐧 **Linux/macOS**: See `RENDER_DEPLOYMENT_GUIDE.md`
-
----
-
-## 🚀 **Deployment Options**
-
-### **Current Deployment: Render.com**
-- **Live URL**: https://net-armor.onrender.com/
-- **Status**: ✅ Active and fully functional
-- **Performance**: Fast global CDN with auto-scaling
-- **Security**: HTTPS enabled, environment variables secured
-- **Auto-scaling** based on traffic
-- **Global CDN** for fast worldwide access
-- **99.9% Uptime** guarantee
-- **HTTPS SSL** certificate included
-
-### **Alternative Deployments**
-
-#### **🌐 Render.com Deployment**
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com)
-
-**Step-by-Step Render Deployment:**
-
-1. **Fork/Upload Repository**
-   - Go to [Render.com](https://render.com) and sign up/login
-   - Connect your GitHub account or upload your repository
-
-2. **Create New Web Service**
-   - Click "New +" → "Web Service"
-   - Connect your NET ARMOR repository
-   - Choose "main" branch
-
-3. **Configure Deployment Settings**
-   ```
-   Name: net-armor-app (or your preferred name)
-   Region: Choose closest to your users
-   Branch: main
-   Runtime: Python 3
-   Build Command: pip install -r requirements.txt
-   Start Command: gunicorn app:app
-   ```
-
-4. **Environment Variables** (Optional)
-   ```
-   FLASK_ENV=production
-   SECRET_KEY=your-secret-key-here
-   GOOGLE_CLIENT_ID=your-google-oauth-id (if using OAuth)
-   GOOGLE_CLIENT_SECRET=your-google-oauth-secret (if using OAuth)
-   ```
-
-5. **Deploy**
-   - Click "Create Web Service"
-   - Wait for build to complete (~2-3 minutes)
-   - Your app will be live at: `https://your-app-name.onrender.com`
-
-**Render Features:**
-- ✅ **Free Tier Available** - Perfect for testing
-- ✅ **Auto-deploys** from GitHub
-- ✅ **SSL Certificates** included
-- ✅ **Custom Domains** supported
-- ✅ **Global CDN** for fast loading
-
-#### **🚀 Other Platforms**
-
-| Platform | Free Tier | Auto Deploy | SSL/HTTPS | Custom Domain | Database | Best For |
-|----------|-----------|-------------|-----------|---------------|-----------|----------|
-| **Render** | Free tier | ✅ | ✅ 750hrs/month | ✅ Free | 🔄 Auto-deploy | **Current** |
-| **Railway** | $5 credit | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Alternative |
-| **Render** | 750h/month | ✅ | ✅ Free | ✅ Free | 🔄 Add-ons | **Recommended alternative** |
-| **Heroku** | ❌ Discontinued | ✅ | ✅ Free | ✅ Paid | 🔄 Add-ons | Legacy apps |
-| **Vercel** | ✅ Limited | ✅ | ✅ Free | ✅ Free | ❌ External | Static/Jamstack |
-| **DigitalOcean** | ❌ $4/month | 🔄 Manual | 🔄 Setup | ✅ Full control | ✅ Full control | VPS control |
-
-**💡 Recommendation**: **Render.com** is now our primary deployment platform, offering excellent free tier with 750 hours/month, automatic deployments from GitHub, and built-in HTTPS.
-
-## 🛠️ **Development Setup**
-
-### **Prerequisites**
-- Python 3.9+
-- Git
-- Modern web browser
-
-### **Local Development**
+### **Comprehensive Test Suite**
 ```bash
-# Clone repository
-git clone https://github.com/BSRohit20/Net-armor-.git
-cd Net-armor-
+# Run all tests
+python -m pytest test_app.py -v
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set environment variables
-export SECRET_KEY=your-secret-key
-export FLASK_ENV=development
-
-# Run development server
-python app.py
+# Run specific test categories
+python -m pytest test_app.py::TestSecurityTools -v
+python -m pytest test_app.py::TestAuthentication -v
 ```
 
-### **Environment Variables**
-```bash
-SECRET_KEY=your-random-secret-key-here
-FLASK_ENV=production  # or development
-PORT=5000  # Optional, defaults to 5000
-```
+**Test Coverage:**
+- ✅ Authentication and session management
+- ✅ All security tools functionality
+- ✅ JWT and 2FA systems
+- ✅ Rate limiting and security measures
+- ✅ API endpoints and error handling
+- ✅ Performance and load testing
+
+## 📊 **Security Metrics & Analytics**
+
+NET ARMOR provides enterprise-grade analytics:
+
+- **📈 Usage Analytics** - Track tool usage patterns and trends
+- **🔒 Security Metrics** - Monitor authentication events and security incidents  
+- **⚡ Performance Monitoring** - Real-time response times and system health
+- **👥 User Activity** - Comprehensive audit logs for compliance
+- **🎯 Effectiveness Tracking** - Measure security tool impact and value
 
 ## 🤝 **Contributing**
 
-We welcome contributions! Here's how to get started:
+We welcome contributions to make NET ARMOR even more powerful:
 
-### **🐛 Bug Reports**
-1. Check existing issues first
-2. Create detailed bug report with steps to reproduce
-3. Include browser/device information
-
-### **✨ Feature Requests**
-1. Open an issue with feature description
-2. Explain use case and benefits
-3. Discuss implementation approach
-
-### **🔧 Code Contributions**
+### **🔧 Development Setup**
 1. Fork the repository
-2. Create feature branch: `git checkout -b feature-name`
-3. Make changes and test thoroughly
-4. Submit pull request with description
+2. Create a feature branch
+3. Run the test suite: `python -m pytest test_app.py`
+4. Submit a pull request with comprehensive description
 
-### **📝 Documentation**
-- Improve README or code comments
-- Add usage examples
-- Create tutorials or guides
+### **🎯 Areas for Contribution**
+- Additional security analysis tools
+- Enhanced vulnerability detection algorithms
+- Advanced analytics and reporting features
+- Mobile app development
+- Integration with security APIs and databases
 
-## 📊 **API Documentation**
+## 📞 **Professional Support**
 
-### **Password Generator API**
-```javascript
-POST /api/generate_password
-{
-  "length": 12,
-  "uppercase": true,
-  "lowercase": true,
-  "digits": true,
-  "special": true
-}
-```
-
-### **Password Strength API**
-```javascript
-POST /api/check_password_strength
-{
-  "password": "your-password-here"
-}
-```
-
-### **IP Lookup API**
-```javascript
-POST /api/lookup_ip
-{
-  "ip": "8.8.8.8"
-}
-```
-
-### **Encryption API**
-```javascript
-POST /api/encrypt
-{
-  "text": "secret message",
-  "password": "encryption-key"
-}
-```
-
-## 🔐 **Security Considerations**
-
-### **Data Protection**
-- **No sensitive data** stored on servers
-- **Client-side processing** when possible
-- **Secure transmission** via HTTPS
-- **Password hashing** with industry standards
-
-### **Privacy**
-- **No user tracking** or analytics
-- **No data collection** beyond necessary functionality
-- **No third-party integrations** that compromise privacy
-- **Local storage** for temporary data only
-
-## 📞 **Support & Contact**
-
-### **🆘 Getting Help**
-- **Issues**: [GitHub Issues](https://github.com/BSRohit20/Net-armor-/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/BSRohit20/Net-armor-/discussions)
-- **Documentation**: This README file
-
-### **📧 Contact**
-- **Developer**: BSRohit20
-- **GitHub**: [@BSRohit20](https://github.com/BSRohit20)
+### **📧 Contact & Support**
+- **Developer**: BSRohit20  
 - **Repository**: [Net-armor-](https://github.com/BSRohit20/Net-armor-)
+- **Issues**: [GitHub Issues](https://github.com/BSRohit20/Net-armor-/issues)
+- **Security**: Report security issues privately through GitHub
 
-## 📜 **License**
+### **🏢 Enterprise Inquiries**
+For enterprise deployments, custom integrations, or professional support, please contact through GitHub for discussions about:
+- Custom security tool development
+- Enterprise deployment assistance  
+- Professional training and consultation
+- API integration and custom features
+
+## 📜 **License & Legal**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## � **Acknowledgments**
+**Important:** NET ARMOR is designed for educational and legitimate security testing purposes. Users are responsible for ensuring compliance with applicable laws and regulations when using these security tools.
 
-- **Bootstrap Team** for the excellent UI framework
-- **Font Awesome** for comprehensive icon library
-- **Flask Community** for the powerful web framework
-- **Render.com** for reliable and free hosting platform
-- **Security Community** for best practices and feedback
+## 🌟 **Recognition & Awards**
 
-## 🚀 **Roadmap**
+NET ARMOR represents a significant advancement in accessible cybersecurity tooling:
 
-### **🔜 Upcoming Features**
-- [ ] **Multi-factor Authentication** support
-- [ ] **Dark/Light Theme** toggle
-- [ ] **Password Import/Export** functionality
-- [ ] **Advanced IP Geolocation** with maps
-- [ ] **File Encryption** capabilities
-- [ ] **User Accounts** with sync across devices
-
-### **🎯 Long-term Goals**
-- [ ] **Mobile Apps** (iOS/Android)
-- [ ] **Browser Extensions** for password management
-- [ ] **API Rate Limiting** for production scaling
-- [ ] **Database Migration** from JSON to PostgreSQL
-- [ ] **Advanced Analytics** dashboard
-- [ ] **Enterprise Features** for organizations
+- **🏆 Comprehensive Security Suite** - All-in-one platform for security professionals
+- **🔒 Production-Ready Security** - Enterprise-grade authentication and protection
+- **📊 Advanced Analytics** - Professional monitoring and reporting capabilities  
+- **🌐 Global Accessibility** - Available worldwide with professional infrastructure
+- **🚀 Modern Architecture** - Built with latest security best practices
 
 ---
 
-## 🌟 **Star This Repository**
+## 🎯 **Why Choose NET ARMOR?**
 
-If you find NET ARMOR useful, please ⭐ **star this repository** to show your support!
+✅ **Professional Grade** - Enterprise-quality security tools accessible to everyone  
+✅ **Comprehensive Suite** - All essential security tools in one platform  
+✅ **Real-time Analytics** - Professional monitoring and metrics dashboard  
+✅ **Advanced Security** - JWT, 2FA, encryption, and modern security practices  
+✅ **Global Access** - Fast, reliable, and available worldwide 24/7  
+✅ **Open Source** - Transparent, auditable, and community-driven  
 
-**🛡️ Stay Secure, Stay Protected with NET ARMOR! 🛡️**
+**🛡️ Secure Your Digital World with NET ARMOR - Where Professional Security Meets Universal Access! 🛡️**
 
 ---
 
-*Made with ❤️ by BSRohit20 | Deployed with 🚀 Render.com*
+*Crafted with 🔒 by BSRohit20 | Powered by ⚡ Modern Security Architecture | Deployed with 🚀 Enterprise Infrastructure*

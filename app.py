@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, Response
 import secrets
 import string
 import re
@@ -17,6 +17,8 @@ from functools import wraps
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
+# --- Analytics & Security ---
+from security_utils import SecurityManager, ActivityLogger, AnalyticsEngine, rate_limit, jwt_required
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -170,6 +172,14 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
+
+# === SECURITY & ANALYTICS INITIALIZATION ===
+# Initialize security components after app creation
+security_manager = SecurityManager(app)
+activity_logger = ActivityLogger()
+analytics_engine = AnalyticsEngine()
+
+# === ROUTES ===
 
 @app.route('/')
 def index():
@@ -509,33 +519,77 @@ def password_generator():
     return render_template('password_generator.html')
 
 @app.route('/api/generate_password', methods=['POST'])
+@rate_limit(max_requests=30, window=60)  # 30 password generations per minute
 def generate_password():
     """API endpoint to generate a password"""
-    data = request.json
-    length = int(data.get('length', 12))
-    include_uppercase = data.get('uppercase', True)
-    include_lowercase = data.get('lowercase', True)
-    include_digits = data.get('digits', True)
-    include_special = data.get('special', True)
-    
-    if length < 4 or length > 128:
-        return jsonify({'success': False, 'message': 'Password length must be between 4 and 128 characters'})
-    
-    characters = ''
-    if include_lowercase:
-        characters += string.ascii_lowercase
-    if include_uppercase:
-        characters += string.ascii_uppercase
-    if include_digits:
-        characters += string.digits
-    if include_special:
-        characters += '!@#$%^&*()_+-=[]{}|;:,.<>?'
-    
-    if not characters:
-        return jsonify({'success': False, 'message': 'Please select at least one character type'})
-    
-    password = ''.join(secrets.choice(characters) for _ in range(length))
-    return jsonify({'success': True, 'password': password})
+    try:
+        data = request.json
+        length = int(data.get('length', 12))
+        include_uppercase = data.get('uppercase', True)
+        include_lowercase = data.get('lowercase', True)
+        include_digits = data.get('digits', True)
+        include_special = data.get('special', True)
+        
+        user_id = session.get('user_id', 'anonymous')
+        
+        if length < 4 or length > 128:
+            activity_logger.log_activity(
+                user_id=user_id,
+                action='password_generation',
+                tool='password_generator',
+                ip_address=request.remote_addr,
+                status='failed',
+                details=f'Invalid length: {length}'
+            )
+            return jsonify({'success': False, 'message': 'Password length must be between 4 and 128 characters'})
+        
+        characters = ''
+        if include_lowercase:
+            characters += string.ascii_lowercase
+        if include_uppercase:
+            characters += string.ascii_uppercase
+        if include_digits:
+            characters += string.digits
+        if include_special:
+            characters += '!@#$%^&*()_+-=[]{}|;:,.<>?'
+        
+        if not characters:
+            activity_logger.log_activity(
+                user_id=user_id,
+                action='password_generation',
+                tool='password_generator',
+                ip_address=request.remote_addr,
+                status='failed',
+                details='No character types selected'
+            )
+            return jsonify({'success': False, 'message': 'Please select at least one character type'})
+        
+        password = ''.join(secrets.choice(characters) for _ in range(length))
+        
+        # Update analytics
+        analytics_engine.increment_metric('passwords_generated')
+        
+        activity_logger.log_activity(
+            user_id=user_id,
+            action='password_generation',
+            tool='password_generator',
+            ip_address=request.remote_addr,
+            status='success',
+            details=f'Length: {length}, Types: {", ".join([t for t, enabled in [("lowercase", include_lowercase), ("uppercase", include_uppercase), ("digits", include_digits), ("special", include_special)] if enabled])}'
+        )
+        
+        return jsonify({'success': True, 'password': password})
+        
+    except Exception as e:
+        activity_logger.log_activity(
+            user_id=session.get('user_id', 'anonymous'),
+            action='password_generation',
+            tool='password_generator',
+            ip_address=request.remote_addr,
+            status='error',
+            details=str(e)
+        )
+        return jsonify({'success': False, 'message': 'An error occurred while generating password'})
 
 @app.route('/password-strength')
 def password_strength():
@@ -543,65 +597,99 @@ def password_strength():
     return render_template('password_strength.html')
 
 @app.route('/api/check_password_strength', methods=['POST'])
+@rate_limit(max_requests=50, window=60)  # 50 strength checks per minute
 def check_password_strength():
     """API endpoint to check password strength"""
-    data = request.json
-    password = data.get('password', '')
-    
-    if not password:
-        return jsonify({'success': False, 'message': 'Please enter a password'})
-    
-    score = 0
-    feedback = []
-    
-    # Length check
-    if len(password) >= 8:
-        score += 1
-    else:
-        feedback.append('Password should be at least 8 characters long')
-    
-    # Uppercase check
-    if re.search(r'[A-Z]', password):
-        score += 1
-    else:
-        feedback.append('Add uppercase letters')
-    
-    # Lowercase check
-    if re.search(r'[a-z]', password):
-        score += 1
-    else:
-        feedback.append('Add lowercase letters')
-    
-    # Digit check
-    if re.search(r'\d', password):
-        score += 1
-    else:
-        feedback.append('Add numbers')
-    
-    # Special character check
-    if re.search(r'[!@#$%^&*()_+-=\[\]{}|;:,.<>?]', password):
-        score += 1
-    else:
-        feedback.append('Add special characters')
-    
-    # Determine strength
-    if score <= 2:
-        strength = 'Weak'
-        color = 'red'
-    elif score <= 3:
-        strength = 'Medium'
-        color = 'orange'
-    else:
-        strength = 'Strong'
-        color = 'green'
-    
-    return jsonify({
-        'success': True,
-        'strength': strength,
-        'score': score,
-        'color': color,
-        'feedback': feedback
-    })
+    try:
+        data = request.json
+        password = data.get('password', '')
+        user_id = session.get('user_id', 'anonymous')
+        
+        if not password:
+            activity_logger.log_activity(
+                user_id=user_id,
+                action='password_strength_check',
+                tool='password_strength',
+                ip_address=request.remote_addr,
+                status='failed',
+                details='Empty password'
+            )
+            return jsonify({'success': False, 'message': 'Please enter a password'})
+        
+        score = 0
+        feedback = []
+        
+        # Length check
+        if len(password) >= 8:
+            score += 1
+        else:
+            feedback.append('Password should be at least 8 characters long')
+        
+        # Uppercase check
+        if re.search(r'[A-Z]', password):
+            score += 1
+        else:
+            feedback.append('Add uppercase letters')
+        
+        # Lowercase check
+        if re.search(r'[a-z]', password):
+            score += 1
+        else:
+            feedback.append('Add lowercase letters')
+        
+        # Digit check
+        if re.search(r'\d', password):
+            score += 1
+        else:
+            feedback.append('Add numbers')
+        
+        # Special character check
+        if re.search(r'[!@#$%^&*()_+-=\[\]{}|;:,.<>?]', password):
+            score += 1
+        else:
+            feedback.append('Add special characters')
+        
+        # Determine strength
+        if score <= 2:
+            strength = 'Weak'
+            color = 'red'
+        elif score <= 3:
+            strength = 'Medium'
+            color = 'orange'
+        else:
+            strength = 'Strong'
+            color = 'green'
+        
+        # Update analytics
+        analytics_engine.increment_metric('security_checks', 'password_checker')
+        
+        activity_logger.log_activity(
+            user_id=user_id,
+            action='password_strength_check',
+            tool='password_strength',
+            ip_address=request.remote_addr,
+            status='success',
+            details=f'Strength: {strength}, Score: {score}/5'
+        )
+        
+        return jsonify({
+            'success': True,
+            'strength': strength,
+            'score': score,
+            'color': color,
+            'feedback': feedback
+        })
+        
+    except Exception as e:
+        activity_logger.log_activity(
+            user_id=session.get('user_id', 'anonymous'),
+            action='password_strength_check',
+            tool='password_strength',
+            ip_address=request.remote_addr,
+            status='error',
+            details=str(e)
+        )
+        return jsonify({'success': False, 'message': 'An error occurred while checking password strength'})
 
 @app.route('/ip-lookup')
 def ip_lookup():
@@ -1066,20 +1154,866 @@ def health_check():
             'error': str(e)
         }), 500
 
-if __name__ == '__main__':
-    # Initialize the application
-    init_app()
-    
-    port = int(os.environ.get('PORT', 5000))
-    debug_mode = os.environ.get('FLASK_ENV') == 'development' and not IS_PRODUCTION
-    
-    app.logger.info(f"Starting NET ARMOR on port {port}")
-    app.logger.info(f"Production mode: {IS_PRODUCTION}")
-    app.logger.info(f"Debug mode: {debug_mode}")
-    app.logger.info(f"Google OAuth enabled: {GOOGLE_OAUTH_ENABLED}")
-    
+# === ANALYTICS DASHBOARD ===
+@app.route('/analytics')
+@login_required
+def analytics():
+    """Analytics dashboard page"""
+    return render_template('analytics.html')
+
+@app.route('/api/analytics')
+@login_required
+def api_analytics():
+    """API endpoint to get analytics data"""
     try:
-        app.run(debug=debug_mode, host='0.0.0.0', port=port)
+        users = load_users()
+        analytics_engine.metrics['total_users'] = len(users)
+        recent_activities = activity_logger.get_recent_activities(10)
+        formatted_activities = []
+        for activity in recent_activities:
+            formatted_activities.append({
+                'time': activity['timestamp'][:19].replace('T', ' '),
+                'user': f"User {activity['user_id']}",
+                'action': activity['action'].title(),
+                'tool': activity['tool'].replace('_', ' ').title(),
+                'ip': activity['ip_address'],
+                'status': activity['status']
+            })
+        return jsonify({
+            'success': True,
+            'metrics': analytics_engine.get_metrics(),
+            'charts': analytics_engine.get_chart_data(),
+            'activity': formatted_activities
+        })
     except Exception as e:
-        app.logger.error(f"Failed to start application: {str(e)}")
-        print(f"ERROR: Failed to start NET ARMOR - {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/analytics/export')
+@login_required
+def export_analytics():
+    """Export analytics data as CSV"""
+    try:
+        import csv
+        from io import StringIO
+        output = StringIO()
+        writer = csv.writer(output)
+        writer.writerow(['Metric', 'Value'])
+        metrics = analytics_engine.get_metrics()
+        for key, value in metrics.items():
+            if isinstance(value, dict):
+                for sub_key, sub_value in value.items():
+                    writer.writerow([f"{key}_{sub_key}", sub_value])
+            else:
+                writer.writerow([key, value])
+        return Response(
+            output.getvalue(),
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment; filename=net_armor_analytics.csv'}
+        )
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+# === JWT AUTHENTICATION API ===
+@app.route('/api/auth/token', methods=['POST'])
+@rate_limit(max_requests=5, window=300)  # 5 attempts per 5 minutes
+def get_auth_token():
+    """Get JWT token for API access"""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+            
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            activity_logger.log_activity(
+                user_id=username or 'unknown',
+                action='token_request',
+                tool='jwt_auth',
+                ip_address=request.remote_addr,
+                status='failed',
+                details='Missing credentials'
+            )
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        
+        users = load_users()
+        user = next((u for u in users if u['username'] == username), None)
+        
+        if user and verify_password(password, user['password']):
+            # Generate JWT token
+            token = security_manager.generate_jwt_token({
+                'user_id': user['username'],
+                'username': user['username']
+            })
+            
+            activity_logger.log_activity(
+                user_id=user['username'],
+                action='token_generated',
+                tool='jwt_auth',
+                ip_address=request.remote_addr,
+                status='success'
+            )
+            
+            return jsonify({
+                'success': True,
+                'token': token,
+                'expires_in': 3600  # 1 hour
+            })
+        else:
+            activity_logger.log_activity(
+                user_id=username,
+                action='token_request',
+                tool='jwt_auth',
+                ip_address=request.remote_addr,
+                status='failed',
+                details='Invalid credentials'
+            )
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/auth/verify', methods=['POST'])
+def verify_auth_token():
+    """Verify JWT token"""
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'success': False, 'error': 'No token provided'}), 401
+            
+        token = auth_header.split(' ')[1]
+        payload = security_manager.verify_jwt_token(token)
+        
+        if payload:
+            return jsonify({
+                'success': True,
+                'user_id': payload.get('user_id'),
+                'username': payload.get('username')
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Invalid token'}), 401
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# === TWO-FACTOR AUTHENTICATION ===
+@app.route('/api/2fa/setup', methods=['POST'])
+@login_required
+def setup_2fa():
+    """Setup 2FA for current user"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Not authenticated'}), 401
+            
+        # Generate TOTP secret
+        secret = security_manager.totp_manager.generate_secret()
+        
+        # Create QR code URI
+        qr_uri = security_manager.totp_manager.get_qr_code_uri(
+            user_id, 
+            secret,
+            issuer_name="NET ARMOR Security Toolkit"
+        )
+        
+        # Store secret temporarily (in production, use secure storage)
+        session['temp_2fa_secret'] = secret
+        
+        activity_logger.log_activity(
+            user_id=user_id,
+            action='2fa_setup_initiated',
+            tool='two_factor_auth',
+            ip_address=request.remote_addr,
+            status='success'
+        )
+        
+        return jsonify({
+            'success': True,
+            'secret': secret,
+            'qr_code_uri': qr_uri,
+            'backup_codes': security_manager.totp_manager.generate_backup_codes()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/2fa/verify', methods=['POST'])
+@login_required
+def verify_2fa():
+    """Verify 2FA token and activate 2FA for user"""
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        user_id = session.get('user_id')
+        secret = session.get('temp_2fa_secret')
+        
+        if not token or not secret:
+            return jsonify({'success': False, 'error': 'Missing token or secret'}), 400
+            
+        # Verify the token
+        if security_manager.totp_manager.verify_token(secret, token):
+            # Update user with 2FA enabled
+            users = load_users()
+            for user in users:
+                if user['username'] == user_id:
+                    user['2fa_enabled'] = True
+                    user['2fa_secret'] = secret
+                    break
+            save_users(users)
+            
+            # Clear temporary secret
+            session.pop('temp_2fa_secret', None)
+            
+            activity_logger.log_activity(
+                user_id=user_id,
+                action='2fa_enabled',
+                tool='two_factor_auth',
+                ip_address=request.remote_addr,
+                status='success'
+            )
+            
+            return jsonify({'success': True, 'message': '2FA successfully enabled'})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid token'}), 400
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/2fa/disable', methods=['POST'])
+@login_required
+def disable_2fa():
+    """Disable 2FA for current user"""
+    try:
+        data = request.get_json()
+        password = data.get('password')
+        user_id = session.get('user_id')
+        
+        if not password:
+            return jsonify({'success': False, 'error': 'Password required'}), 400
+            
+        users = load_users()
+        user = next((u for u in users if u['username'] == user_id), None)
+        
+        if user and verify_password(password, user['password']):
+            user['2fa_enabled'] = False
+            user.pop('2fa_secret', None)
+            save_users(users)
+            
+            activity_logger.log_activity(
+                user_id=user_id,
+                action='2fa_disabled',
+                tool='two_factor_auth',
+                ip_address=request.remote_addr,
+                status='success'
+            )
+            
+            return jsonify({'success': True, 'message': '2FA successfully disabled'})
+        else:
+            return jsonify({'success': False, 'error': 'Invalid password'}), 401
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/2fa/status')
+@login_required
+def get_2fa_status():
+    """Get 2FA status for current user"""
+    try:
+        user_id = session.get('user_id')
+        users = load_users()
+        user = next((u for u in users if u['username'] == user_id), None)
+        
+        if user:
+            return jsonify({
+                'success': True,
+                'enabled': user.get('2fa_enabled', False)
+            })
+        else:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+            
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# === NEW SECURITY TOOLS ===
+
+@app.route('/domain-scanner')
+@login_required
+def domain_scanner():
+    """Domain Security Scanner tool page"""
+    return render_template('domain_scanner.html')
+
+@app.route('/vulnerability-scanner')
+@login_required  
+def vulnerability_scanner():
+    """Vulnerability Scanner tool page"""
+    return render_template('vulnerability_scanner.html')
+
+@app.route('/password-policy-analyzer')
+@login_required
+def password_policy_analyzer():
+    """Password Policy Analyzer tool page"""
+    return render_template('password_policy_analyzer.html')
+
+@app.route('/api/scan_domain', methods=['POST'])
+@login_required
+@rate_limit(max_requests=10, window=300)  # 10 requests per 5 minutes
+def scan_domain():
+    """API endpoint for domain security scanning"""
+    try:
+        data = request.get_json()
+        domain = data.get('domain', '').strip()
+        
+        if not domain:
+            return jsonify({'success': False, 'error': 'Domain is required'}), 400
+        
+        # Remove protocol if present
+        domain = domain.replace('http://', '').replace('https://', '').replace('www.', '')
+        domain = domain.split('/')[0]  # Remove path if present
+        
+        # Validate domain format
+        domain_pattern = r'^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$'
+        if not re.match(domain_pattern, domain):
+            return jsonify({'success': False, 'error': 'Invalid domain format'}), 400
+        
+        # Initialize scan results
+        scan_results = {
+            'domain': domain,
+            'timestamp': datetime.now().isoformat(),
+            'ssl_info': {},
+            'dns_info': {},
+            'security_headers': {},
+            'ports': {},
+            'whois_info': {},
+            'security_score': 0,
+            'recommendations': []
+        }
+        
+        # SSL/TLS Certificate Check
+        try:
+            import ssl
+            import socket
+            
+            context = ssl.create_default_context()
+            with socket.create_connection((domain, 443), timeout=10) as sock:
+                with context.wrap_socket(sock, server_hostname=domain) as ssock:
+                    cert = ssock.getpeercert()
+                    
+                    scan_results['ssl_info'] = {
+                        'enabled': True,
+                        'version': ssock.version(),
+                        'cipher': ssock.cipher(),
+                        'issuer': dict(x[0] for x in cert['issuer']) if cert.get('issuer') else {},
+                        'subject': dict(x[0] for x in cert['subject']) if cert.get('subject') else {},
+                        'expires': cert.get('notAfter', 'Unknown'),
+                        'serial_number': cert.get('serialNumber', 'Unknown')
+                    }
+                    
+                    # Check if certificate is expiring soon
+                    try:
+                        expires_str = cert.get('notAfter')
+                        if expires_str:
+                            expires = datetime.strptime(expires_str, '%b %d %H:%M:%S %Y %Z')
+                            days_until_expiry = (expires - datetime.now()).days
+                            
+                            if days_until_expiry < 30:
+                                scan_results['recommendations'].append(f"SSL certificate expires in {days_until_expiry} days")
+                    except Exception:
+                        pass  # Ignore date parsing errors
+                    
+                    scan_results['security_score'] += 25
+                    
+        except Exception as e:
+            scan_results['ssl_info'] = {'enabled': False, 'error': str(e)}
+            scan_results['recommendations'].append("SSL/TLS not properly configured")
+        
+        # DNS Information
+        try:
+            import socket
+            scan_results['dns_info'] = {
+                'ip_address': socket.gethostbyname(domain),
+                'mx_records': [],
+                'txt_records': []
+            }
+            scan_results['security_score'] += 10
+        except Exception as e:
+            scan_results['dns_info'] = {'error': str(e)}
+        
+        # Security Headers Check
+        try:
+            response = requests.get(f'https://{domain}', timeout=10, allow_redirects=True)
+            headers = response.headers
+            
+            security_headers = {
+                'Strict-Transport-Security': headers.get('Strict-Transport-Security', 'Not Set'),
+                'Content-Security-Policy': headers.get('Content-Security-Policy', 'Not Set'),
+                'X-Frame-Options': headers.get('X-Frame-Options', 'Not Set'),
+                'X-Content-Type-Options': headers.get('X-Content-Type-Options', 'Not Set'),
+                'X-XSS-Protection': headers.get('X-XSS-Protection', 'Not Set'),
+                'Referrer-Policy': headers.get('Referrer-Policy', 'Not Set')
+            }
+            
+            scan_results['security_headers'] = security_headers
+            
+            # Score based on security headers
+            header_score = 0
+            for header, value in security_headers.items():
+                if value != 'Not Set':
+                    header_score += 5
+            
+            scan_results['security_score'] += min(header_score, 30)
+            
+            # Add recommendations for missing headers
+            for header, value in security_headers.items():
+                if value == 'Not Set':
+                    scan_results['recommendations'].append(f"Missing security header: {header}")
+                    
+        except Exception as e:
+            scan_results['security_headers'] = {'error': str(e)}
+            scan_results['recommendations'].append("Unable to check security headers")
+        
+        # Port Scan (common ports only)
+        try:
+            import socket
+            common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995, 3389]
+            open_ports = []
+            
+            for port in common_ports:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(2)
+                result = sock.connect_ex((domain, port))
+                if result == 0:
+                    open_ports.append(port)
+                sock.close()
+            
+            scan_results['ports'] = {'open_ports': open_ports}
+            
+            # Check for risky open ports
+            risky_ports = [21, 23, 25, 110, 143, 3389]
+            for port in open_ports:
+                if port in risky_ports:
+                    scan_results['recommendations'].append(f"Potentially risky port {port} is open")
+                    
+        except Exception as e:
+            scan_results['ports'] = {'error': str(e)}
+        
+        # Basic WHOIS information (simplified)
+        try:
+            # This is a simplified version - in production you'd use a proper WHOIS library
+            scan_results['whois_info'] = {
+                'status': 'Available via WHOIS lookup',
+                'note': 'Full WHOIS data requires specialized library'
+            }
+        except Exception as e:
+            scan_results['whois_info'] = {'error': str(e)}
+        
+        # Calculate final security score (out of 100)
+        scan_results['security_score'] = min(scan_results['security_score'], 100)
+        
+        # Add overall recommendations based on score
+        if scan_results['security_score'] < 50:
+            scan_results['recommendations'].insert(0, "Domain has significant security vulnerabilities")
+        elif scan_results['security_score'] < 75:
+            scan_results['recommendations'].insert(0, "Domain security can be improved")
+        else:
+            scan_results['recommendations'].insert(0, "Domain has good security configuration")
+        
+        # Log the activity
+        activity_logger.log_activity(
+            user_id=session.get('user_id'),
+            action='domain_scan',
+            tool='domain_scanner',
+            details={'domain': domain, 'score': scan_results['security_score']},
+            ip_address=request.remote_addr,
+            status='success'
+        )
+        
+        return jsonify({'success': True, 'results': scan_results})
+        
+    except Exception as e:
+        activity_logger.log_activity(
+            user_id=session.get('user_id'),
+            action='domain_scan',
+            tool='domain_scanner',
+            ip_address=request.remote_addr,
+            status='error',
+            details={'error': str(e)}
+        )
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/vulnerability_scan', methods=['POST'])
+@login_required
+@rate_limit(max_requests=5, window=300)  # 5 requests per 5 minutes (more intensive)
+def vulnerability_scan():
+    """API endpoint for vulnerability scanning"""
+    try:
+        data = request.get_json()
+        target = data.get('target', '').strip()
+        scan_type = data.get('scan_type', 'basic')
+        
+        if not target:
+            return jsonify({'success': False, 'error': 'Target is required'}), 400
+        
+        # Initialize scan results
+        scan_results = {
+            'target': target,
+            'scan_type': scan_type,
+            'timestamp': datetime.now().isoformat(),
+            'vulnerabilities': [],
+            'summary': {
+                'total_vulnerabilities': 0,
+                'critical': 0,
+                'high': 0,
+                'medium': 0,
+                'low': 0,
+                'info': 0
+            },
+            'recommendations': []
+        }
+        
+        # Basic vulnerability checks
+        vulnerabilities_found = []
+        
+        # Check for common web vulnerabilities
+        try:
+            # Test for HTTP vs HTTPS
+            try:
+                response = requests.get(f'http://{target}', timeout=10, allow_redirects=False)
+                if response.status_code != 301 and response.status_code != 302:
+                    vulnerabilities_found.append({
+                        'type': 'HTTP Not Redirected to HTTPS',
+                        'severity': 'Medium',
+                        'description': 'Site accessible via HTTP without redirect to HTTPS',
+                        'recommendation': 'Implement HTTPS redirect for all HTTP requests'
+                    })
+            except:
+                pass
+            
+            # Check for security headers
+            try:
+                response = requests.get(f'https://{target}', timeout=10)
+                headers = response.headers
+                
+                security_checks = {
+                    'X-Frame-Options': 'Clickjacking protection missing',
+                    'X-Content-Type-Options': 'MIME type sniffing protection missing',
+                    'X-XSS-Protection': 'XSS protection header missing',
+                    'Strict-Transport-Security': 'HSTS header missing',
+                    'Content-Security-Policy': 'CSP header missing'
+                }
+                
+                for header, description in security_checks.items():
+                    if header not in headers:
+                        vulnerabilities_found.append({
+                            'type': f'Missing {header}',
+                            'severity': 'Medium' if header == 'Content-Security-Policy' else 'Low',
+                            'description': description,
+                            'recommendation': f'Add {header} security header'
+                        })
+                
+                # Check for server information disclosure
+                if 'Server' in headers:
+                    vulnerabilities_found.append({
+                        'type': 'Server Information Disclosure',
+                        'severity': 'Low',
+                        'description': f'Server header reveals: {headers["Server"]}',
+                        'recommendation': 'Remove or obscure server version information'
+                    })
+                
+                # Check for directory listing
+                test_paths = ['/admin', '/backup', '/.git', '/.env', '/config']
+                for path in test_paths:
+                    try:
+                        test_response = requests.get(f'https://{target}{path}', timeout=5)
+                        if test_response.status_code == 200 and 'Index of' in test_response.text:
+                            vulnerabilities_found.append({
+                                'type': 'Directory Listing Enabled',
+                                'severity': 'Medium',
+                                'description': f'Directory listing enabled at {path}',
+                                'recommendation': 'Disable directory listing on web server'
+                            })
+                    except:
+                        continue
+                        
+            except Exception as e:
+                vulnerabilities_found.append({
+                    'type': 'HTTPS Connection Failed',
+                    'severity': 'High',
+                    'description': f'Unable to establish secure connection: {str(e)}',
+                    'recommendation': 'Ensure SSL/TLS is properly configured'
+                })
+        
+        except Exception as e:
+            pass
+        
+        # If advanced scan requested, add more checks
+        if scan_type == 'advanced':
+            # SQL Injection basic test (very basic, educational purposes)
+            try:
+                test_payloads = ["'", '"', "1' OR '1'='1"]
+                for payload in test_payloads:
+                    test_url = f'https://{target}/?id={payload}'
+                    try:
+                        response = requests.get(test_url, timeout=5)
+                        if any(error in response.text.lower() for error in ['sql error', 'mysql error', 'postgresql error']):
+                            vulnerabilities_found.append({
+                                'type': 'Potential SQL Injection',
+                                'severity': 'Critical',
+                                'description': 'Database error messages detected in response',
+                                'recommendation': 'Implement proper input validation and parameterized queries'
+                            })
+                            break
+                    except:
+                        continue
+            except:
+                pass
+        
+        # Categorize vulnerabilities
+        for vuln in vulnerabilities_found:
+            severity = vuln['severity'].lower()
+            scan_results['summary'][severity] += 1
+            scan_results['summary']['total_vulnerabilities'] += 1
+        
+        scan_results['vulnerabilities'] = vulnerabilities_found
+        
+        # Generate recommendations
+        if scan_results['summary']['critical'] > 0:
+            scan_results['recommendations'].append("Address critical vulnerabilities immediately")
+        if scan_results['summary']['high'] > 0:
+            scan_results['recommendations'].append("High-severity vulnerabilities require urgent attention")
+        if scan_results['summary']['total_vulnerabilities'] == 0:
+            scan_results['recommendations'].append("No common vulnerabilities detected in basic scan")
+        
+        scan_results['recommendations'].append("Consider professional penetration testing for comprehensive security assessment")
+        
+        # Log the activity
+        activity_logger.log_activity(
+            user_id=session.get('user_id'),
+            action='vulnerability_scan',
+            tool='vulnerability_scanner',
+            details={'target': target, 'vulnerabilities_found': scan_results['summary']['total_vulnerabilities']},
+            ip_address=request.remote_addr,
+            status='success'
+        )
+        
+        return jsonify({'success': True, 'results': scan_results})
+        
+    except Exception as e:
+        activity_logger.log_activity(
+            user_id=session.get('user_id'),
+            action='vulnerability_scan',
+            tool='vulnerability_scanner',
+            ip_address=request.remote_addr,
+            status='error',
+            details={'error': str(e)}
+        )
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/analyze_password_policy', methods=['POST'])
+@login_required
+@rate_limit(max_requests=20, window=300)  # 20 requests per 5 minutes
+def analyze_password_policy():
+    """API endpoint for password policy analysis"""
+    try:
+        data = request.get_json()
+        policy_text = data.get('policy_text', '').strip()
+        
+        if not policy_text:
+            return jsonify({'success': False, 'error': 'Policy text is required'}), 400
+        
+        # Initialize analysis results
+        analysis_results = {
+            'policy_text': policy_text,
+            'timestamp': datetime.now().isoformat(),
+            'analysis': {
+                'length_requirements': {},
+                'character_requirements': {},
+                'expiration_policy': {},
+                'lockout_policy': {},
+                'complexity_requirements': {},
+                'common_patterns': []
+            },
+            'score': 0,
+            'grade': 'F',
+            'strengths': [],
+            'weaknesses': [],
+            'recommendations': []
+        }
+        
+        policy_lower = policy_text.lower()
+        
+        # Analyze length requirements
+        length_patterns = [
+            (r'(?:minimum|min|at least) (\d+) character', 'minimum_length'),
+            (r'(\d+) character minimum', 'minimum_length'),
+            (r'(?:maximum|max|no more than) (\d+) character', 'maximum_length')
+        ]
+        
+        for pattern, requirement_type in length_patterns:
+            import re
+            match = re.search(pattern, policy_lower)
+            if match:
+                length = int(match.group(1))
+                analysis_results['analysis']['length_requirements'][requirement_type] = length
+                
+                if requirement_type == 'minimum_length':
+                    if length >= 12:
+                        analysis_results['score'] += 25
+                        analysis_results['strengths'].append(f"Strong minimum length requirement ({length} characters)")
+                    elif length >= 8:
+                        analysis_results['score'] += 15
+                        analysis_results['strengths'].append(f"Adequate minimum length requirement ({length} characters)")
+                    else:
+                        analysis_results['weaknesses'].append(f"Weak minimum length requirement ({length} characters)")
+                        analysis_results['recommendations'].append("Increase minimum password length to at least 12 characters")
+        
+        # Analyze character requirements
+        character_checks = {
+            'uppercase': [r'upper.?case', r'capital letter', r'[A-Z]'],
+            'lowercase': [r'lower.?case', r'small letter', r'[a-z]'],
+            'numbers': [r'number', r'digit', r'\d', r'[0-9]'],
+            'special_characters': [r'special character', r'symbol', r'[!@#$%^&*]', r'punctuation']
+        }
+        
+        character_score = 0
+        for char_type, patterns in character_checks.items():
+            found = any(re.search(pattern, policy_lower) for pattern in patterns)
+            analysis_results['analysis']['character_requirements'][char_type] = found
+            if found:
+                character_score += 5
+                analysis_results['strengths'].append(f"Requires {char_type.replace('_', ' ')}")
+            else:
+                analysis_results['weaknesses'].append(f"Missing {char_type.replace('_', ' ')} requirement")
+        
+        analysis_results['score'] += character_score
+        
+        # Analyze expiration policy
+        expiration_patterns = [
+            (r'(?:expire|change|update).*?(\d+) day', 'days'),
+            (r'(\d+) day.*?(?:expire|change)', 'days'),
+            (r'(?:expire|change|update).*?(\d+) month', 'months'),
+            (r'(\d+) month.*?(?:expire|change)', 'months')
+        ]
+        
+        for pattern, unit in expiration_patterns:
+            match = re.search(pattern, policy_lower)
+            if match:
+                period = int(match.group(1))
+                analysis_results['analysis']['expiration_policy'] = {'period': period, 'unit': unit}
+                
+                if unit == 'days':
+                    if period <= 30:
+                        analysis_results['weaknesses'].append(f"Very frequent password changes required ({period} days)")
+                        analysis_results['recommendations'].append("Consider longer password expiration periods")
+                    elif period <= 90:
+                        analysis_results['score'] += 10
+                        analysis_results['strengths'].append(f"Reasonable password expiration ({period} days)")
+                    else:
+                        analysis_results['score'] += 5
+                        analysis_results['strengths'].append(f"Password expiration policy in place ({period} days)")
+                elif unit == 'months':
+                    if period <= 6:
+                        analysis_results['score'] += 10
+                        analysis_results['strengths'].append(f"Reasonable password expiration ({period} months)")
+                    else:
+                        analysis_results['score'] += 5
+                        analysis_results['strengths'].append(f"Password expiration policy in place ({period} months)")
+                break
+        
+        # Analyze lockout policy
+        lockout_patterns = [
+            r'lock.*?account',
+            r'account.*?lock',
+            r'failed.*?attempt',
+            r'incorrect.*?password',
+            r'block.*?user'
+        ]
+        
+        if any(re.search(pattern, policy_lower) for pattern in lockout_patterns):
+            analysis_results['analysis']['lockout_policy']['enabled'] = True
+            analysis_results['score'] += 15
+            analysis_results['strengths'].append("Account lockout policy defined")
+        else:
+            analysis_results['analysis']['lockout_policy']['enabled'] = False
+            analysis_results['weaknesses'].append("No account lockout policy mentioned")
+            analysis_results['recommendations'].append("Implement account lockout after failed login attempts")
+        
+        # Check for complexity requirements
+        complexity_patterns = {
+            'no_dictionary_words': [r'dictionary word', r'common word'],
+            'no_personal_info': [r'personal information', r'name', r'birthday'],
+            'no_previous_passwords': [r'previous password', r'recent password', r'password history'],
+            'no_keyboard_patterns': [r'keyboard pattern', r'sequential', r'qwerty']
+        }
+        
+        for requirement, patterns in complexity_patterns.items():
+            found = any(re.search(pattern, policy_lower) for pattern in patterns)
+            analysis_results['analysis']['complexity_requirements'][requirement] = found
+            if found:
+                analysis_results['score'] += 5
+                analysis_results['strengths'].append(f"Prohibits {requirement.replace('_', ' ').replace('no ', '')}")
+        
+        # Check for common security patterns
+        security_patterns = [
+            ('multi-factor authentication', 'MFA requirement'),
+            ('two.factor', '2FA requirement'),
+            ('single sign.on', 'SSO integration'),
+            ('password manager', 'Password manager recommendation'),
+            ('encryption', 'Password encryption mentioned')
+        ]
+        
+        for pattern, description in security_patterns:
+            if re.search(pattern, policy_lower):
+                analysis_results['analysis']['common_patterns'].append(description)
+                analysis_results['score'] += 10
+                analysis_results['strengths'].append(description)
+        
+        # Calculate grade based on score
+        if analysis_results['score'] >= 80:
+            analysis_results['grade'] = 'A'
+        elif analysis_results['score'] >= 70:
+            analysis_results['grade'] = 'B'
+        elif analysis_results['score'] >= 60:
+            analysis_results['grade'] = 'C'
+        elif analysis_results['score'] >= 50:
+            analysis_results['grade'] = 'D'
+        else:
+            analysis_results['grade'] = 'F'
+        
+        # Add general recommendations
+        if analysis_results['score'] < 70:
+            analysis_results['recommendations'].extend([
+                "Consider implementing multi-factor authentication",
+                "Provide password manager recommendations to users",
+                "Include guidance on creating strong, unique passwords",
+                "Regular security awareness training for users"
+            ])
+        
+        # Log the activity
+        activity_logger.log_activity(
+            user_id=session.get('user_id'),
+            action='password_policy_analysis',
+            tool='password_policy_analyzer',
+            details={'score': analysis_results['score'], 'grade': analysis_results['grade']},
+            ip_address=request.remote_addr,
+            status='success'
+        )
+        
+        return jsonify({'success': True, 'results': analysis_results})
+        
+    except Exception as e:
+        activity_logger.log_activity(
+            user_id=session.get('user_id'),
+            action='password_policy_analysis',
+            tool='password_policy_analyzer',
+            ip_address=request.remote_addr,
+            status='error',
+            details={'error': str(e)}
+        )
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# === END NEW SECURITY TOOLS ===
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=not IS_PRODUCTION)

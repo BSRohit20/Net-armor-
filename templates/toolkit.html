@@ -120,6 +120,45 @@
     <div class="col-md-6 col-lg-4">
         <div class="card h-100 text-center toolkit-card">
             <div class="card-body d-flex flex-column">
+                <i class="fas fa-globe display-3 text-info mb-3"></i>
+                <h5 class="card-title">Domain Security Scanner</h5>
+                <p class="card-text flex-grow-1">Comprehensive security analysis of domains including SSL, DNS, headers, and ports.</p>
+                <a href="{{ url_for('domain_scanner') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Scan Domain
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-bug display-3 text-danger mb-3"></i>
+                <h5 class="card-title">Vulnerability Scanner</h5>
+                <p class="card-text flex-grow-1">Detect security vulnerabilities and misconfigurations in web applications.</p>
+                <a href="{{ url_for('vulnerability_scanner') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Scan Vulnerabilities
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
+                <i class="fas fa-clipboard-check display-3 text-success mb-3"></i>
+                <h5 class="card-title">Password Policy Analyzer</h5>
+                <p class="card-text flex-grow-1">Analyze and score organizational password policies for security effectiveness.</p>
+                <a href="{{ url_for('password_policy_analyzer') }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-right me-2"></i>Analyze Policy
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 text-center toolkit-card">
+            <div class="card-body d-flex flex-column">
                 <i class="fas fa-arrow-left display-3 text-secondary mb-3"></i>
                 <h5 class="card-title">Back to Home</h5>
                 <p class="card-text flex-grow-1">Return to the main homepage to access other features.</p>

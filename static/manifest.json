@@ -1,0 +1,68 @@
+{
+  "name": "NET ARMOR Security Toolkit",
+  "short_name": "NET ARMOR",
+  "description": "Comprehensive digital security toolkit with password management, encryption, and security analysis tools",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#16213e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiMxNjIxM2UiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjZmZmZmZmIj4KPHA+UGF0aCBkPSJNMTIgMWwtMTAgMTBsLjggMi41YzEgM3MxLjUgNS41IDkuMiA1LjVTMjEgMTYuNSAyMiAxMy41bC44LTIuNUwxMiAxeiIvPgo8L3N2Zz4KPC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiByeD0iNjQiIGZpbGw9IiMxNjIxM2UiLz4KPHN2ZyB4PSIxMjgiIHk9IjEyOCIgd2lkdGg9IjI1NiIgaGVpZ2h0PSIyNTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2ZmZmZmZiI+CjxwYXRoIGQ9Ik0xMiAxbC0xMCAxMGwuOCAyLjVjMSAzczEuNSA1LjUgOS4yIDUuNVM2MSAxNi41IDIyIDEzLjVsLjgtMi41TDEyIDEgeiIvPgo8L3N2Zz4KPC9zdmc+",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["security", "utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "/static/images/screenshot-desktop.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/static/images/screenshot-mobile.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Password Generator",
+      "short_name": "Generator",
+      "description": "Generate secure passwords",
+      "url": "/password-generator",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzE2MjEzZSI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAwIDAgMCAyMGExMCAxMCAwIDAgMCAwLTIwem0wIDJhOCA4IDAgMCAxIDggOCA4IDggMCAwIDEtOCA4IDggOCAwIDAgMS04LTggOCA4IDAgMCAxIDgtOHptMCA0YTQgNCAwIDAgMCA0IDQgNCA0IDAgMCAwLTQtNCA0IDQgMCAwIDAtNCA0IDQgNCAwIDAgMCA0LTR6Ii8+PC9zdmc+",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Password Checker",
+      "short_name": "Checker", 
+      "description": "Check password strength",
+      "url": "/password-strength",
+      "icons": [
+        {
+          "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzE2MjEzZSI+PHBhdGggZD0iTTEyIDJhMTAgMTAgMCAwIDAgMCAyMGExMCAxMCAwIDAgMCAwLTIwem0wIDJhOCA4IDAgMCAxIDggOCA4IDggMCAwIDEtOCA4IDggOCAwIDAgMS04LTggOCA4IDAgMCAxIDgtOHptMCA0YTQgNCAwIDAgMCA0IDQgNCA0IDAgMCAwLTQtNCA0IDQgMCAwIDAtNCA0IDQgNCAwIDAgMCA0LTR6Ii8+PC9zdmc+",
+          "sizes": "96x96", 
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}

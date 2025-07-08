@@ -1,0 +1,451 @@
+{% extends "base.html" %}
+
+{% block title %}Domain Security Scanner - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2><i class="fas fa-search me-2"></i>Domain Security Scanner</h2>
+                    <p class="mb-0">Comprehensive domain security analysis and vulnerability assessment</p>
+                </div>
+                <div class="card-body">
+                    <form id="domainScanForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text">🌐</span>
+                                    <input type="text" class="form-control" id="domainInput" 
+                                           placeholder="Enter domain (e.g., example.com)" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-scan me-1"></i>Scan Domain
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="form-check-container">
+                                    <label class="form-label fw-bold">Scan Options:</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="sslCheck" checked>
+                                                <label class="form-check-label" for="sslCheck">SSL/TLS Analysis</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="dnsCheck" checked>
+                                                <label class="form-check-label" for="dnsCheck">DNS Records</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="headersCheck" checked>
+                                                <label class="form-check-label" for="headersCheck">Security Headers</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="whoisCheck" checked>
+                                                <label class="form-check-label" for="whoisCheck">WHOIS Information</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="subdomainCheck">
+                                                <label class="form-check-label" for="subdomainCheck">Subdomain Discovery</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="portCheck">
+                                                <label class="form-check-label" for="portCheck">Port Scanning</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Scanning...</span>
+                        </div>
+                        <p class="mt-2">Scanning domain security... This may take a few moments.</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="scanResults" class="mt-4" style="display: none;">
+                        <h4><i class="fas fa-chart-line me-2"></i>Scan Results</h4>
+                        
+                        <!-- Security Score -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="card border-primary">
+                                    <div class="card-body text-center">
+                                        <h5>Overall Security Score</h5>
+                                        <div class="security-score-circle" id="securityScore">
+                                            <span id="scoreValue">--</span>
+                                        </div>
+                                        <p id="scoreDescription" class="mt-2"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Results Tabs -->
+                        <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="ssl-tab" data-bs-toggle="tab" data-bs-target="#ssl-content" type="button" role="tab">
+                                    <i class="fas fa-lock me-1"></i>SSL/TLS
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="dns-tab" data-bs-toggle="tab" data-bs-target="#dns-content" type="button" role="tab">
+                                    <i class="fas fa-server me-1"></i>DNS
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="headers-tab" data-bs-toggle="tab" data-bs-target="#headers-content" type="button" role="tab">
+                                    <i class="fas fa-shield-alt me-1"></i>Security Headers
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="whois-tab" data-bs-toggle="tab" data-bs-target="#whois-content" type="button" role="tab">
+                                    <i class="fas fa-info-circle me-1"></i>WHOIS
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="subdomains-tab" data-bs-toggle="tab" data-bs-target="#subdomains-content" type="button" role="tab">
+                                    <i class="fas fa-sitemap me-1"></i>Subdomains
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content mt-3" id="resultTabContent">
+                            <div class="tab-pane fade show active" id="ssl-content" role="tabpanel">
+                                <div id="sslResults"></div>
+                            </div>
+                            <div class="tab-pane fade" id="dns-content" role="tabpanel">
+                                <div id="dnsResults"></div>
+                            </div>
+                            <div class="tab-pane fade" id="headers-content" role="tabpanel">
+                                <div id="headersResults"></div>
+                            </div>
+                            <div class="tab-pane fade" id="whois-content" role="tabpanel">
+                                <div id="whoisResults"></div>
+                            </div>
+                            <div class="tab-pane fade" id="subdomains-content" role="tabpanel">
+                                <div id="subdomainsResults"></div>
+                            </div>
+                        </div>
+
+                        <!-- Export Options -->
+                        <div class="mt-4 text-center">
+                            <button class="btn btn-outline-primary me-2" onclick="exportResults('json')">
+                                <i class="fas fa-download me-1"></i>Export as JSON
+                            </button>
+                            <button class="btn btn-outline-primary me-2" onclick="exportResults('pdf')">
+                                <i class="fas fa-file-pdf me-1"></i>Export as PDF
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="shareScan()">
+                                <i class="fas fa-share me-1"></i>Share Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.security-score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    margin: 10px auto;
+}
+
+.score-excellent { background: linear-gradient(45deg, #28a745, #20c997); }
+.score-good { background: linear-gradient(45deg, #ffc107, #fd7e14); }
+.score-poor { background: linear-gradient(45deg, #dc3545, #e83e8c); }
+
+.form-check-container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-tabs .nav-link {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.nav-tabs .nav-link.active {
+    background: rgba(87, 51, 255, 0.8);
+    border-color: #5733ff;
+    color: white;
+}
+
+.vulnerability-item {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border-left: 4px solid;
+}
+
+.vuln-critical { border-left-color: #dc3545; background: rgba(220, 53, 69, 0.1); }
+.vuln-high { border-left-color: #fd7e14; background: rgba(253, 126, 20, 0.1); }
+.vuln-medium { border-left-color: #ffc107; background: rgba(255, 193, 7, 0.1); }
+.vuln-low { border-left-color: #28a745; background: rgba(40, 167, 69, 0.1); }
+</style>
+
+<script>
+document.getElementById('domainScanForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    performDomainScan();
+});
+
+async function performDomainScan() {
+    const domain = document.getElementById('domainInput').value.trim();
+    if (!domain) return;
+
+    // Show loading
+    document.getElementById('loadingSpinner').style.display = 'block';
+    document.getElementById('scanResults').style.display = 'none';
+
+    const scanOptions = {
+        ssl: document.getElementById('sslCheck').checked,
+        dns: document.getElementById('dnsCheck').checked,
+        headers: document.getElementById('headersCheck').checked,
+        whois: document.getElementById('whoisCheck').checked,
+        subdomains: document.getElementById('subdomainCheck').checked,
+        ports: document.getElementById('portCheck').checked
+    };
+
+    try {
+        const response = await fetch('/api/scan_domain', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                domain: domain,
+                options: scanOptions
+            })
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            displayScanResults(result.data);
+        } else {
+            alert('Scan failed: ' + result.message);
+        }
+    } catch (error) {
+        alert('Error performing scan: ' + error.message);
+    } finally {
+        document.getElementById('loadingSpinner').style.display = 'none';
+    }
+}
+
+function displayScanResults(data) {
+    // Display security score
+    const scoreElement = document.getElementById('scoreValue');
+    const scoreCircle = document.getElementById('securityScore');
+    const scoreDesc = document.getElementById('scoreDescription');
+    
+    scoreElement.textContent = data.overall_score + '/100';
+    
+    if (data.overall_score >= 80) {
+        scoreCircle.className = 'security-score-circle score-excellent';
+        scoreDesc.textContent = 'Excellent security posture';
+    } else if (data.overall_score >= 60) {
+        scoreCircle.className = 'security-score-circle score-good';
+        scoreDesc.textContent = 'Good security with room for improvement';
+    } else {
+        scoreCircle.className = 'security-score-circle score-poor';
+        scoreDesc.textContent = 'Poor security - immediate attention required';
+    }
+
+    // Populate tab content
+    if (data.ssl) displaySSLResults(data.ssl);
+    if (data.dns) displayDNSResults(data.dns);
+    if (data.headers) displayHeadersResults(data.headers);
+    if (data.whois) displayWhoisResults(data.whois);
+    if (data.subdomains) displaySubdomainsResults(data.subdomains);
+
+    document.getElementById('scanResults').style.display = 'block';
+}
+
+function displaySSLResults(ssl) {
+    const container = document.getElementById('sslResults');
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Certificate Information</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Valid:</strong> ${ssl.valid ? '✅ Yes' : '❌ No'}</li>
+                    <li><strong>Issuer:</strong> ${ssl.issuer || 'N/A'}</li>
+                    <li><strong>Expires:</strong> ${ssl.expires || 'N/A'}</li>
+                    <li><strong>Protocol:</strong> ${ssl.protocol || 'N/A'}</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Security Features</h6>
+                <ul class="list-unstyled">
+                    <li><strong>HSTS:</strong> ${ssl.hsts ? '✅ Enabled' : '❌ Disabled'}</li>
+                    <li><strong>Forward Secrecy:</strong> ${ssl.forward_secrecy ? '✅ Yes' : '❌ No'}</li>
+                    <li><strong>Cipher Strength:</strong> ${ssl.cipher_strength || 'Unknown'}</li>
+                </ul>
+            </div>
+        </div>
+        ${ssl.vulnerabilities && ssl.vulnerabilities.length > 0 ? 
+            `<div class="mt-3">
+                <h6>Vulnerabilities Found</h6>
+                ${ssl.vulnerabilities.map(vuln => 
+                    `<div class="vulnerability-item vuln-${vuln.severity}">
+                        <strong>${vuln.name}</strong>: ${vuln.description}
+                    </div>`
+                ).join('')}
+            </div>` : 
+            '<p class="text-success mt-3">✅ No SSL vulnerabilities detected</p>'
+        }
+    `;
+}
+
+function displayDNSResults(dns) {
+    const container = document.getElementById('dnsResults');
+    container.innerHTML = `
+        <div class="row">
+            ${Object.entries(dns.records || {}).map(([type, records]) => 
+                `<div class="col-md-6 mb-3">
+                    <h6>${type} Records</h6>
+                    <ul class="list-unstyled">
+                        ${records.map(record => `<li><code>${record}</code></li>`).join('')}
+                    </ul>
+                </div>`
+            ).join('')}
+        </div>
+        ${dns.security_issues && dns.security_issues.length > 0 ?
+            `<div class="mt-3">
+                <h6>DNS Security Issues</h6>
+                ${dns.security_issues.map(issue => 
+                    `<div class="vulnerability-item vuln-${issue.severity}">
+                        <strong>${issue.type}</strong>: ${issue.description}
+                    </div>`
+                ).join('')}
+            </div>` :
+            '<p class="text-success mt-3">✅ No DNS security issues detected</p>'
+        }
+    `;
+}
+
+function displayHeadersResults(headers) {
+    const container = document.getElementById('headersResults');
+    const securityHeaders = [
+        { name: 'Content-Security-Policy', key: 'csp' },
+        { name: 'X-Frame-Options', key: 'x_frame_options' },
+        { name: 'X-Content-Type-Options', key: 'x_content_type_options' },
+        { name: 'Referrer-Policy', key: 'referrer_policy' },
+        { name: 'Permissions-Policy', key: 'permissions_policy' }
+    ];
+
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h6>Security Headers Analysis</h6>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>Header</th>
+                                <th>Status</th>
+                                <th>Value</th>
+                                <th>Recommendation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${securityHeaders.map(header => {
+                                const present = headers[header.key];
+                                return `
+                                    <tr>
+                                        <td><code>${header.name}</code></td>
+                                        <td>${present ? '✅ Present' : '❌ Missing'}</td>
+                                        <td><small>${present ? headers[header.key + '_value'] || 'Set' : 'Not set'}</small></td>
+                                        <td><small>${present ? 'Good' : 'Should be implemented'}</small></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function displayWhoisResults(whois) {
+    const container = document.getElementById('whoisResults');
+    container.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Domain Information</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Registrar:</strong> ${whois.registrar || 'N/A'}</li>
+                    <li><strong>Created:</strong> ${whois.created || 'N/A'}</li>
+                    <li><strong>Expires:</strong> ${whois.expires || 'N/A'}</li>
+                    <li><strong>Updated:</strong> ${whois.updated || 'N/A'}</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Contact Information</h6>
+                <ul class="list-unstyled">
+                    <li><strong>Registrant:</strong> ${whois.registrant || 'Private'}</li>
+                    <li><strong>Admin Contact:</strong> ${whois.admin_contact || 'Private'}</li>
+                    <li><strong>Tech Contact:</strong> ${whois.tech_contact || 'Private'}</li>
+                </ul>
+            </div>
+        </div>
+    `;
+}
+
+function displaySubdomainsResults(subdomains) {
+    const container = document.getElementById('subdomainsResults');
+    container.innerHTML = `
+        <h6>Discovered Subdomains (${subdomains.found.length})</h6>
+        <div class="row">
+            ${subdomains.found.length > 0 ? 
+                subdomains.found.map(sub => 
+                    `<div class="col-md-4 mb-2">
+                        <code>${sub.name}</code>
+                        <small class="d-block">${sub.ip || 'No IP'}</small>
+                    </div>`
+                ).join('') :
+                '<p>No subdomains discovered or subdomain scanning was not enabled.</p>'
+            }
+        </div>
+    `;
+}
+
+function exportResults(format) {
+    // Implementation for exporting results
+    alert('Export functionality - ' + format + ' format selected');
+}
+
+function shareScan() {
+    // Implementation for sharing scan results
+    alert('Share functionality - Generate shareable link');
+}
+</script>
+{% endblock %}

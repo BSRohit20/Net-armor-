@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - NET ARMOR{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-chart-line me-2"></i>Security Analytics Dashboard
+                </h2>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-light" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                    <button type="button" class="btn btn-outline-light" onclick="exportData()">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h4 class="card-title" id="totalUsers">0</h4>
+                    <p class="card-text">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-key fa-2x text-success mb-2"></i>
+                    <h4 class="card-title" id="passwordsGenerated">0</h4>
+                    <p class="card-text">Passwords Generated</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
+                    <h4 class="card-title" id="securityChecks">0</h4>
+                    <p class="card-text">Security Checks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                    <h4 class="card-title" id="threatsDetected">0</h4>
+                    <p class="card-text">Threats Detected</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Tool Usage Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="toolUsageChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Security Score Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="securityTrendChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Alerts -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Recent Security Alerts</h5>
+                </div>
+                <div class="card-body">
+                    <div id="securityAlerts">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Weak Password Detected:</strong> User attempted to use commonly breached password
+                            <small class="float-end">2 minutes ago</small>
+                        </div>
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>New User Registration:</strong> Account created from unusual location
+                            <small class="float-end">15 minutes ago</small>
+                        </div>
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Security Check Passed:</strong> All systems operating normally
+                            <small class="float-end">1 hour ago</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-globe me-2"></i>Geographic Activity</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="geoChart" width="300" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity Log</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="activityTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Tool</th>
+                                    <th>IP Address</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activityTableBody">
+                                <!-- Dynamic content will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Initialize Charts
+let toolUsageChart, securityTrendChart, geoChart;
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    loadAnalyticsData();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(loadAnalyticsData, 30000);
+});
+
+function initializeCharts() {
+    // Tool Usage Chart
+    const toolCtx = document.getElementById('toolUsageChart').getContext('2d');
+    toolUsageChart = new Chart(toolCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Password Generator', 'Password Checker', 'IP Lookup', 'Encryption', 'Breach Checker', 'URL Scanner'],
+            datasets: [{
+                data: [0, 0, 0, 0, 0, 0],
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Security Trend Chart
+    const trendCtx = document.getElementById('securityTrendChart').getContext('2d');
+    securityTrendChart = new Chart(trendCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Security Score',
+                data: [],
+                borderColor: '#36A2EB',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+
+    // Geographic Chart
+    const geoCtx = document.getElementById('geoChart').getContext('2d');
+    geoChart = new Chart(geoCtx, {
+        type: 'pie',
+        data: {
+            labels: ['USA', 'Europe', 'Asia', 'Other'],
+            datasets: [{
+                data: [0, 0, 0, 0],
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+async function loadAnalyticsData() {
+    try {
+        const response = await fetch('/api/analytics');
+        const data = await response.json();
+        
+        if (data.success) {
+            updateMetrics(data.metrics);
+            updateCharts(data.charts);
+            updateActivityLog(data.activity);
+        }
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+    }
+}
+
+function updateMetrics(metrics) {
+    document.getElementById('totalUsers').textContent = metrics.totalUsers || 0;
+    document.getElementById('passwordsGenerated').textContent = metrics.passwordsGenerated || 0;
+    document.getElementById('securityChecks').textContent = metrics.securityChecks || 0;
+    document.getElementById('threatsDetected').textContent = metrics.threatsDetected || 0;
+}
+
+function updateCharts(chartData) {
+    // Update tool usage chart
+    if (chartData.toolUsage) {
+        toolUsageChart.data.datasets[0].data = chartData.toolUsage;
+        toolUsageChart.update();
+    }
+    
+    // Update security trend chart
+    if (chartData.securityTrend) {
+        securityTrendChart.data.labels = chartData.securityTrend.labels;
+        securityTrendChart.data.datasets[0].data = chartData.securityTrend.data;
+        securityTrendChart.update();
+    }
+    
+    // Update geographic chart
+    if (chartData.geographic) {
+        geoChart.data.datasets[0].data = chartData.geographic;
+        geoChart.update();
+    }
+}
+
+function updateActivityLog(activities) {
+    const tbody = document.getElementById('activityTableBody');
+    tbody.innerHTML = '';
+    
+    activities.forEach(activity => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${activity.time}</td>
+            <td>${activity.user}</td>
+            <td>${activity.action}</td>
+            <td>${activity.tool}</td>
+            <td>${activity.ip}</td>
+            <td><span class="badge bg-${activity.status === 'success' ? 'success' : 'warning'}">${activity.status}</span></td>
+        `;
+    });
+}
+
+function refreshData() {
+    loadAnalyticsData();
+}
+
+function exportData() {
+    // Export analytics data as CSV
+    window.location.href = '/api/analytics/export';
+}
+</script>
+{% endblock %}
