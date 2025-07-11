@@ -213,6 +213,33 @@ Deploy NET ARMOR instantly on professional cloud platforms:
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/BSRohit20/Net-armor-)
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/BSRohit20/Net-armor-)
+
+### **🌐 Deployment Options**
+
+| Platform | Best For | Setup Time | Free Tier | Custom Domain |
+|----------|----------|------------|-----------|---------------|
+| **Vercel** | Serverless Apps | ⚡ 2 minutes | ✅ Generous | ✅ Free |
+| **Render** | Long-running Apps | 🔄 3 minutes | ✅ 750h/month | ✅ Free |
+| **Railway** | Full-stack Apps | 🔄 3 minutes | ✅ $5 credit | ✅ Paid |
+
+### **🚀 Quick Deploy Commands**
+
+#### **Vercel Deployment**
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+cd "NET ARMOR"
+vercel --prod
+```
+
+#### **Render Deployment**
+- Connect GitHub repository at [render.com](https://render.com)
+- Auto-deploy from main branch
+- Uses existing `render.yaml` configuration
+
 **Deployment Features:**
 - ✅ **Auto-scaling** based on demand
 - ✅ **Global CDN** for fast worldwide access
